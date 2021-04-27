@@ -1,13 +1,12 @@
 import html5lib
 import lxml.etree as etree
+import bleach
 import os
 
 LOOKUP = {
-  'html': { 'replacement': 'xml', 'start': 'version="1.0"'},
-  'p': { 'replacement': 'text' },
-  'div': { 'replacement': 'content' },
+  'p': 'text',
+  'div':'content',
 }
-
 class HTMLParser:
   def __init__(self, file):
     self.html = ""
@@ -15,9 +14,9 @@ class HTMLParser:
     self._formatted_xml_string = ""
 
     self._file = file
-    TreeBuilder = html5lib.getTreeBuilder("dom")
+    TreeBuilder = html5lib.getTreeBuilder("lxml")
     self._parser = html5lib.HTMLParser(tree=TreeBuilder)
-    self._tree_walker = html5lib.getTreeWalker('dom')
+    self._tree_walker = html5lib.getTreeWalker('lxml')
     self._dom_tree = self._create_dom_tree()
     self._stream = self._tree_walker(self._dom_tree)
     self._convert_html_to_xml()
@@ -29,11 +28,14 @@ class HTMLParser:
       return self._parser.parse(self.html)
 
   def _convert_html_to_xml(self):
+    self.xml += '<?xml version="1.0"?><data>'
     for item in self._stream:
-      #Name is in item if its a HTML5 tag
       if 'name' in item:
         self._build_tag(item)
-    print(self.xml)
+      else:
+        if item['type'] in ('Characters', 'SpecialCharacters',):
+          self.xml += bleach.clean(item['data'])
+    self.xml += '</data>'
 
   def _build_tag(self, tag: dict) -> None:
     if tag['type'] == 'StartTag':
@@ -43,21 +45,15 @@ class HTMLParser:
 
   def _build_start_tag(self, tag):
     converted_tag = LOOKUP.get(tag['name'], tag['name'])
-
-    if isinstance(converted_tag, dict):
-      xml_string = converted_tag['replacement']
-      if converted_tag.get('start'):
-        xml_string += f' {converted_tag["start"]}'
-      self.xml += f'<{xml_string}>'
-    else:
-      self.xml += f'<{converted_tag}>'
+    if converted_tag in ('script', 'noscript',):
+      return
+    self.xml += f'<{converted_tag}>'
 
   def _build_end_tag(self, tag: dict) -> None:
     converted_tag = LOOKUP.get(tag['name'], tag['name'])
-    if isinstance(converted_tag, dict):
-      self.xml += f'</{converted_tag["replacement"]}>'
-    else:
-      self.xml += f'</{converted_tag}>'
+    if converted_tag in ('script', 'noscript',):
+      return
+    self.xml += f'</{converted_tag}>'
 
   def _pretty_xml(self):
     root = etree.fromstring(self.xml)
@@ -66,6 +62,5 @@ class HTMLParser:
     my_file = os.path.join(FOLDER, 'data/output.xml')
     with open(my_file, 'w+') as f:
       f.write(str(self._formatted_xml_string))
-
 
 HTMLParser('D:/devel/transparant-https-proxy/html-parser/data/index.html')
