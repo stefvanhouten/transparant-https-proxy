@@ -1,8 +1,20 @@
-<xml version="1.0">
+<data>
   <head>
-    <title/>
+    <title>Document</title>
   </head>
-  <body>
-    <text/>
-  </body>
-</xml>
+  <content>
+    <text>test</text>
+    <section>
+      <text>Content 1</text>
+    </section>
+    <section>
+      <container>
+        <text>Content 2</text>
+        <img>
+          <src>test.png</src>
+          <alt>test</alt>
+        </img>
+      </container>
+    </section>
+  </content>
+</data>
