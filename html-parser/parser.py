@@ -10,20 +10,24 @@ EXCLUDE = (
   )
 
 class HTMLParser:
-  def __init__(self, file):
+  def __init__(self):
+    self.xml = ""
+    self.html = ""
+    self._formatted_xml_string = ""
+
     TreeBuilder = html5lib.getTreeBuilder("lxml")
     self._parser = html5lib.HTMLParser(tree=TreeBuilder)
     self._tree_walker = html5lib.getTreeWalker('lxml')
 
-    self._file = file
-    self._formatted_xml_string = ""
-    self.html, self._dom_tree = self._create_dom_tree()
+  def parse(self, file):
+    self.html, self._dom_tree = self._create_dom_tree(file)
     self._stream = self._tree_walker(self._dom_tree)
-    self.xml = self._convert_html_to_xml()
-    self._pretty_xml()
 
-  def _create_dom_tree(self):
-    with open(self._file, 'rb') as f:
+    self.xml = self._convert_html_to_xml()
+    return self._pretty_xml()
+
+  def _create_dom_tree(self, file):
+    with open(file, 'rb') as f:
       html = f.read()
       dom_tree = self._parser.parse(html)
       return html, dom_tree
@@ -75,10 +79,12 @@ class HTMLParser:
 
   def _pretty_xml(self):
     root = etree.fromstring(self.xml)
-    self._formatted_xml_string = etree.tostring(root, pretty_print=True).decode()
+    self._formatted_xml_string = str(etree.tostring(root, pretty_print=True).decode())
     FOLDER = os.path.dirname(os.path.abspath(__file__))
     my_file = os.path.join(FOLDER, 'data/output.xml')
     with open(my_file, 'w+') as f:
-      f.write(str(self._formatted_xml_string))
+      f.write(self._formatted_xml_string)
+    return self._formatted_xml_string
 
-HTMLParser('D:/devel/transparant-https-proxy/html-parser/data/index.html')
+parser = HTMLParser()
+print(parser.parse('D:/devel/transparant-https-proxy/html-parser/data/index.html'))
