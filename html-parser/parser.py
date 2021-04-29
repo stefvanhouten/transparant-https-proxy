@@ -3,20 +3,18 @@ import html5lib
 import lxml.etree as etree
 import bleach
 import os
-
-EXCLUDE = (
-  'script',
-  'noscript',
-  'html',
-  )
-
 class HTMLParser:
-  def __init__(self):
-    """Constructs and prepares the HTMLParser class to be ready for use."""
+  def __init__(self, EXCLUDE: list):
+    """Constructs and prepares the HTMLParser class to be ready for use.
+
+    Args:
+      EXCLUDE (list[str]): A list of strings containing the elements to not include into
+                           the parser XML.
+    """
     self.xml = ""
     self.html = ""
     self._formatted_xml_string = ""
-
+    self.EXCLUDE = EXCLUDE
     TreeBuilder = html5lib.getTreeBuilder("lxml")
     self._parser = html5lib.HTMLParser(tree=TreeBuilder)
     self._tree_walker = html5lib.getTreeWalker('lxml')
@@ -96,7 +94,7 @@ class HTMLParser:
       string: Formatted XML starting tag when a tag could be created, otherwise None.
     """
     tag_name = tag['name']
-    if tag_name in EXCLUDE:
+    if tag_name in self.EXCLUDE:
       return
     return f'<{tag_name}>'
 
@@ -109,7 +107,7 @@ class HTMLParser:
       string: Formatted XML ending tag when a tag could be created, otherwise None.
     """
     tag_name = tag['name']
-    if tag_name in EXCLUDE:
+    if tag_name in self.EXCLUDE:
       return
     return f'</{tag_name}>'
 
@@ -137,5 +135,11 @@ class HTMLParser:
       f.write(self._formatted_xml_string)
     return self._formatted_xml_string
 
-parser = HTMLParser()
+EXCLUDE = (
+  'script',
+  'noscript',
+  'html',
+  )
+
+parser = HTMLParser(EXCLUDE)
 print(parser.parse('D:/devel/transparant-https-proxy/html-parser/data/index.html'))
