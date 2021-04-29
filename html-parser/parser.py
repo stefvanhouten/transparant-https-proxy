@@ -3,12 +3,6 @@ import lxml.etree as etree
 import bleach
 import os
 
-LOOKUP = {
-  'p': 'text',
-  'div':'container',
-  'body': 'content',
-}
-
 EXCLUDE = (
   'script',
   'noscript',
@@ -61,16 +55,16 @@ class HTMLParser:
         return self._build_img_tag(tag)
 
   def _build_start_tag(self, tag):
-    converted_tag = LOOKUP.get(tag['name'], tag['name'])
-    if converted_tag in EXCLUDE:
+    tag_name = tag['name']
+    if tag_name in EXCLUDE:
       return
-    return f'<{converted_tag}>'
+    return f'<{tag_name}>'
 
   def _build_end_tag(self, tag: dict) -> None:
-    converted_tag = LOOKUP.get(tag['name'], tag['name'])
-    if converted_tag in EXCLUDE:
+    tag_name = tag['name']
+    if tag_name in EXCLUDE:
       return
-    return f'</{converted_tag}>'
+    return f'</{tag_name}>'
 
   def _build_img_tag(self, tag: dict):
     new_tag = ""
