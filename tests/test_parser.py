@@ -30,6 +30,10 @@ def match_output_vs_expected(tests, subtests, htmlparser):
 
 def test_broken_html(htmlparser, subtests):
   tests = [
+    {'test': '</p>', 'expected': '<data><head></head><body></body></data>'},
+    {'test': '</div><p>', 'expected': '<data><head></head><body><p></p></body></data>'},
+    {'test': '</a></p></b>', 'expected': '<data><head></head><body></body></data>'},
+    {'test': '</p></p></p></p></p>', 'expected': '<data><head></head><body></body></data>'},
     {'test': '<p></b>', 'expected': '<data><head></head><body><p></p></body></data>'},
     {'test': '<div><h1>hello world</p></div>', 'expected': '<data><head></head><body><div><h1>hello world<p></p></h1></div></body></data>'},
   ]
