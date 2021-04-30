@@ -19,11 +19,11 @@ class HTMLParser:
     self._parser = html5lib.HTMLParser(tree=TreeBuilder)
     self._tree_walker = html5lib.getTreeWalker('lxml')
 
-  def parse(self, file: BinaryIO):
+  def parse(self, file: str) -> str:
     """Parses the given HTML file to an XML file.
 
     Args:
-      file (BinaryIO): The file to extract the HTML from
+      file (string): The path to the HTML file or the HTML as a string.
     Returns:
       string: The formatted XML string.
     """
@@ -33,7 +33,22 @@ class HTMLParser:
     self.xml = self._convert_html_to_xml()
     return self._pretty_xml()
 
-  def _create_dom_tree(self, file: BinaryIO) -> Tuple[str, Any]:
+  def _create_dom_tree(self, file: str) -> Tuple[str, Any]:
+    """Determines whether the given string is a path or the HTML, then either reads the file or converts
+    the given HTML the a dom tree.
+
+    Args:
+      file (string): The path to the file or the HTML as a string.
+    Returns:
+     Tuple[string, domtree]: Tuple containing the raw HTML and a the HTML in the form of a dom tree.
+    """
+    if os.path.exists(os.path.dirname(file)):
+      return self._create_dom_tree_from_file(file)
+
+    dom_tree = self._parser.parse(file)
+    return file, dom_tree
+
+  def _create_dom_tree_from_file(self, file: BinaryIO) -> Tuple[str, Any]:
     """Reads the HTML file an creates a dom tree like object.
 
     Args:
@@ -41,7 +56,6 @@ class HTMLParser:
     Returns:
       tuple[string, domtree]: Tuple containing the HTML and the parsed HTML in the form of a dom tree.
     """
-
     with open(file, 'rb') as f:
       html = f.read()
       dom_tree = self._parser.parse(html)
@@ -142,4 +156,28 @@ EXCLUDE = (
   )
 
 parser = HTMLParser(EXCLUDE)
-print(parser.parse('D:/devel/transparant-https-proxy/html-parser/data/index.html'))
+
+data = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <p>test</p>
+  <section>
+    <p>Content 1</p>
+  </section>
+  <section>
+    <div>
+      <p>Content 2</p>
+      <img src="test.png" alt="test">
+    </div>
+  </section>
+</body>
+</html>
+"""
+print(parser.parse(data))
