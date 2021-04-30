@@ -19,11 +19,12 @@ class HTMLParser:
     self._parser = html5lib.HTMLParser(tree=TreeBuilder)
     self._tree_walker = html5lib.getTreeWalker('lxml')
 
-  def parse(self, file: str) -> str:
+  def parse(self, file: str, output_location: str=None) -> str:
     """Parses the given HTML file to an XML file.
 
     Args:
       file (string): The path to the HTML file or the HTML as a string.
+      output_location (string, optional): The path to the file where the output should be saved. Defaults to None.
     Returns:
       string: The formatted XML string.
     """
@@ -31,7 +32,7 @@ class HTMLParser:
     self._stream = self._tree_walker(self._dom_tree)
 
     self.xml = self._convert_html_to_xml()
-    return self._pretty_xml()
+    return self._pretty_xml(output_location)
 
   def _create_dom_tree(self, file: str) -> Tuple[str, Any]:
     """Determines whether the given string is a path or the HTML, then either reads the file or converts
@@ -140,13 +141,14 @@ class HTMLParser:
       new_tag += f'<{tag_name}>{value}</{tag_name}>'
     return f'<img>{new_tag}</img>'
 
-  def _pretty_xml(self):
+  def _pretty_xml(self, output_location):
     root = etree.fromstring(self.xml)
     self._formatted_xml_string = str(etree.tostring(root, pretty_print=True).decode())
-    FOLDER = os.path.dirname(os.path.abspath(__file__))
-    my_file = os.path.join(FOLDER, 'data/output.xml')
-    with open(my_file, 'w+') as f:
-      f.write(self._formatted_xml_string)
+
+    if output_location is not None:
+      with open(output_location, 'w+') as f:
+        f.write(self._formatted_xml_string)
+
     return self._formatted_xml_string
 
 EXCLUDE = (
