@@ -19,12 +19,13 @@ class HTMLParser:
     self._parser = html5lib.HTMLParser(tree=TreeBuilder)
     self._tree_walker = html5lib.getTreeWalker('lxml')
 
-  def parse(self, file: str, output_location: str=None) -> str:
+  def parse(self, file: str, output_location: str=None, pretty_xml: bool=True) -> str:
     """Parses the given HTML file to an XML file.
 
     Args:
       file (string): The path to the HTML file or the HTML as a string.
       output_location (string, optional): The path to the file where the output should be saved. Defaults to None.
+      pretty_xml (bool): Determines whether the output is prettified or not.
     Returns:
       string: The formatted XML string.
     """
@@ -32,7 +33,7 @@ class HTMLParser:
     self._stream = self._tree_walker(self._dom_tree)
 
     self.xml = self._convert_html_to_xml()
-    return self._pretty_xml(output_location)
+    return self._pretty_xml(output_location, pretty_xml)
 
   def _create_dom_tree(self, file: str) -> Tuple[str, Any]:
     """Determines whether the given string is a path or the HTML, then either reads the file or converts
@@ -79,7 +80,7 @@ class HTMLParser:
         continue
       if item['type'] in INTERESTED_CHARACTERS:
         converted_html += bleach.clean(item['data'])
-    return f'<?xml version="1.0"?><data>{converted_html}</data>'
+    return f'<data>{converted_html}</data>'
 
   def _build_tag(self, tag: dict) -> Optional[str]:
     """Attempts to build a XML tag for given HTML tag.
@@ -141,15 +142,20 @@ class HTMLParser:
       new_tag += f'<{tag_name}>{value}</{tag_name}>'
     return f'<img>{new_tag}</img>'
 
-  def _pretty_xml(self, output_location):
+  def _pretty_xml(self, output_location, pretty_xml):
     root = etree.fromstring(self.xml)
     self._formatted_xml_string = str(etree.tostring(root, pretty_print=True).decode())
 
     if output_location is not None:
       with open(output_location, 'w+') as f:
-        f.write(self._formatted_xml_string)
+        if pretty_xml:
+          f.write(self._formatted_xml_string)
+        else:
+          f.write(self.xml)
 
-    return self._formatted_xml_string
+    if pretty_xml:
+      return self._formatted_xml_string
+    return self.xml
 
 EXCLUDE = (
   'script',
