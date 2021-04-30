@@ -141,5 +141,5 @@ EXCLUDE = (
   'html',
   )
 
-parser = HTMLParser(EXCLUDE)
-print(parser.parse('D:/devel/transparant-https-proxy/html-parser/data/index.html'))
+# parser = HTMLParser(EXCLUDE)
+# print(parser.parse('D:/devel/transparant-https-proxy/html-parser/data/index.html'))

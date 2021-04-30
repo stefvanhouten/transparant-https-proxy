@@ -2,19 +2,19 @@
   <head>
     <title>Document</title>
   </head>
-  <content>
-    <text>test</text>
+  <body>
+    <p>test</p>
     <section>
-      <text>Content 1</text>
+      <p>Content 1</p>
     </section>
     <section>
-      <container>
-        <text>Content 2</text>
+      <div>
+        <p>Content 2</p>
         <img>
           <src>test.png</src>
           <alt>test</alt>
         </img>
-      </container>
+      </div>
     </section>
-  </content>
+  </body>
 </data>
