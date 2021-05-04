@@ -13,14 +13,14 @@ or
 
 If you have the correct version installed, run the command with whichever of the above commands gave you the correct version in the directory "transparant-https-proxy" (project directory). 
 
-`python venv env`
+`python -m venv env`
 or
 `python3 venv env`
 
 This might take a little bit of time to complete. When the command is done with execution, you will now have a new folder called env in your project directory. Now we need to activate this environment in the project directory:
 
 For Windows:
-`-m env/scripts/activate`
+`env/scripts/activate`
 For Linux (I think):
 `source env/bin/activate`
 
