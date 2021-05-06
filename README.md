@@ -68,19 +68,23 @@ If everything did go correct, you should see tiles which should look like this:
 
 ![tiles](https://user-images.githubusercontent.com/38207747/117337332-89354400-ae9d-11eb-9341-81573eedb531.PNG)
 
-Click on "get mitmproxy (...)" next to the tile that shows your operating system.
+Click on _get mitmproxy (...)_ next to the tile that shows your operating system.
 From there on the wizard will prompt you to select for which user (on your computer) this program should be installed and to configure whether you would like to create a password for your private key.
-Upon completion of the above, close "mitmpdump" or "mitmproxy ui" if it's open and close the browser.
-Now type in the windows search box either "mitmpdump" or "mitmproxy ui". Both are proxy servers, "mitmproxy ui" comes with an interface, whereas "mitmdump" will give you the console display.
-Click on the one you prefer and wait until you see _"Web server listening at http://127.0.0.1:8081/
-Proxy server listening at http://*:8080"_ in the opened console.
-Start your favorite browser and type in: https://google.com
+
+Upon completion of the above, close _mitmpdump_ or _mitmproxy ui_ (if it's running) and close the browser.
+
+Type in the windows search box either _mitmpdump_ or _mitmproxy ui_. Both are proxy servers, _mitmproxy ui_ comes with an interface, whereas _mitmdump_ will give you the console display.
+Click on the one you prefer and wait until you see _Web server listening at http://127.0.0.1:8081/
+Proxy server listening at http://*:8080_ in the opened console.
+
+Start your favorite browser and type in: https://google.com.
 If the installation went correct, you should be able to see google via HTTPS.
 
 To confirm mitm is signing the certificate, click on the key lock next to the Uniform Resource Locator (URL).
-Click on "Certificate" and you should see the following:
+
+Click on _Certificate_ and you should see the following:
 
 ![image](https://user-images.githubusercontent.com/38207747/117338929-6dcb3880-ae9f-11eb-8c77-367b76fa823c.png)
 
-##Contgratulations!
+## Contgratulations!
 Your self signed certificate has been successfully generated and handed out to the website and all the requests and responses are being sent through your proxy.
