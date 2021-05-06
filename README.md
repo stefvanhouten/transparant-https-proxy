@@ -82,4 +82,5 @@ Click on "Certificate" and you should see the following:
 
 ![image](https://user-images.githubusercontent.com/38207747/117338929-6dcb3880-ae9f-11eb-8c77-367b76fa823c.png)
 
-Contgratulations! Your self signed certificate has been successfully generated and handed out to the website and all the requests and responses are being sent through your proxy.
+##Contgratulations!
+Your self signed certificate has been successfully generated and handed out to the website and all the requests and responses are being sent through your proxy.
