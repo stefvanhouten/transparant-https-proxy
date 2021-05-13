@@ -11,7 +11,7 @@ Check your python version with the following commands depending on how you insta
 or
 `python3 -V`
 
-If you have the correct version installed, run the command with whichever of the above commands gave you the correct version in the directory "transparant-https-proxy" (project directory). 
+If you have the correct version installed, run the command with whichever of the above commands gave you the correct version in the directory "transparant-https-proxy" (project directory).
 
 `python -m venv env`
 or
@@ -88,3 +88,6 @@ Click on _Certificate_ and you should see the following:
 
 ## Contgratulations!
 Your self signed certificate has been successfully generated and handed out to the website and all the requests and responses are being sent through your proxy.
+
+# Make commands for Linux
+Running `make` will setup a virtualenv, this will also keep track of changes in the `requirements.txt` and update accordingly.
