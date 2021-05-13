@@ -1,0 +1,2 @@
+pytest-subtests==0.4.0
+pytest==6.2.3
