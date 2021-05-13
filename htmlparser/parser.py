@@ -3,6 +3,19 @@ import html5lib
 import lxml.etree as etree
 import bleach
 import os
+import re
+
+def str_to_int(s, default, base=10):
+  if int(s, base) < 0x10000:
+      return chr(int(s, base))
+  return default
+
+def remove_control_characters(html):
+  html = re.sub(r"&#(\d+);?", lambda c: str_to_int(c.group(1), c.group(0)), html)
+  html = re.sub(r"&#[xX]([0-9a-fA-F]+);?", lambda c: str_to_int(c.group(1), c.group(0), base=16), html)
+  html = re.sub(r"[\x00-\x08\x0b\x0e-\x1f\x7f]", "", html)
+  return html
+
 class HTMLParser:
   def __init__(self, EXCLUDE: list):
     """Constructs and prepares the HTMLParser class to be ready for use.
@@ -13,6 +26,7 @@ class HTMLParser:
     """
     self.xml = ""
     self.html = ""
+    self.skipping_tag = False
     self._formatted_xml_string = ""
     self.EXCLUDE = EXCLUDE
     TreeBuilder = html5lib.getTreeBuilder("lxml")
@@ -29,10 +43,13 @@ class HTMLParser:
     Returns:
       string: The formatted XML string.
     """
+    # file = remove_control_characters(file)
     self.html, self._dom_tree = self._create_dom_tree(file)
     self._stream = self._tree_walker(self._dom_tree)
 
     self.xml = self._convert_html_to_xml()
+    # with open(output_location, 'w+') as f:
+    #   f.write(self.xml)
     return self._pretty_xml(output_location, pretty_xml)
 
   def _create_dom_tree(self, file: str) -> Tuple[str, Any]:
@@ -78,7 +95,7 @@ class HTMLParser:
         if tag is not None:
           converted_html += tag
         continue
-      if item['type'] in INTERESTED_CHARACTERS:
+      if item['type'] in INTERESTED_CHARACTERS and not self.skipping_tag:
         converted_html += bleach.clean(item['data'])
     return f'<data>{converted_html}</data>'
 
@@ -99,6 +116,7 @@ class HTMLParser:
 
     if type == 'EmptyTag':
       if tag['name'] == 'img':
+        return
         return self._build_img_tag(tag)
 
   def _build_start_tag(self, tag) -> Optional[str]:
@@ -109,8 +127,10 @@ class HTMLParser:
     Returns:
       string: Formatted XML starting tag when a tag could be created, otherwise None.
     """
+    self.skipping_tag = False
     tag_name = tag['name']
     if tag_name in self.EXCLUDE:
+      self.skipping_tag = True
       return
     return f'<{tag_name}>'
 
@@ -124,6 +144,7 @@ class HTMLParser:
     """
     tag_name = tag['name']
     if tag_name in self.EXCLUDE:
+      self.skipping_tag = False
       return
     return f'</{tag_name}>'
 
@@ -139,7 +160,7 @@ class HTMLParser:
     new_tag = ""
     for tag, value in tag['data'].items():
       _, tag_name = tag
-      new_tag += f'<{tag_name}>{value}</{tag_name}>'
+      new_tag += f'<{tag_name}>{bleach.clean(value)}</{tag_name}>'
     return f'<img>{new_tag}</img>'
 
   def _pretty_xml(self, output_location, pretty_xml):
@@ -157,35 +178,38 @@ class HTMLParser:
       return self._formatted_xml_string
     return self.xml
 
-EXCLUDE = (
-  'script',
-  'noscript',
-  'html',
-  )
+# EXCLUDE = (
+#   'script',
+#   'style',
+#   'noscript',
+#   # 'html',
+#   )
 
-parser = HTMLParser(EXCLUDE)
+# parser = HTMLParser(EXCLUDE)
+# f = open("/home/stef/devel/transparant-https-proxy/sample.html", "r")
+# parser.parse(f.read(), output_location="/home/stef/devel/transparant-https-proxy/output.html")
 
-data = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
-  <p>test</p>
-  <section>
-    <p>Content 1</p>
-  </section>
-  <section>
-    <div>
-      <p>Content 2</p>
-      <img src="test.png" alt="test">
-    </div>
-  </section>
-</body>
-</html>
-"""
-print(parser.parse(data))
+# # data = """
+# <!DOCTYPE html>
+# <html lang="en">
+# <head>
+#   <meta charset="UTF-8">
+#   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+#   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#   <title>Document</title>
+# </head>
+# <body>
+#   <p>test</p>
+#   <section>
+#     <p>Content 1</p>
+#   </section>
+#   <section>
+#     <div>
+#       <p>Content 2</p>
+#       <img src="test.png" alt="test">
+#     </div>
+#   </section>
+# </body>
+# </html>
+# """
+# print(parser.parse(data))
