@@ -45,7 +45,7 @@ To run the unittests:
 `python -m pytest tests`
 
 ## Running the project in its current state
-`python htmlparser\parser.py`
+`python htmlparser/parser.py`
 or
 `python3 .\htmlparser\parser.py`
 
