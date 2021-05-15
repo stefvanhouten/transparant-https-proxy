@@ -3,19 +3,6 @@ import html5lib
 import lxml.etree as etree
 import bleach
 import os
-import re
-
-def str_to_int(s, default, base=10):
-  if int(s, base) < 0x10000:
-      return chr(int(s, base))
-  return default
-
-def remove_control_characters(html):
-  html = re.sub(r"&#(\d+);?", lambda c: str_to_int(c.group(1), c.group(0)), html)
-  html = re.sub(r"&#[xX]([0-9a-fA-F]+);?", lambda c: str_to_int(c.group(1), c.group(0), base=16), html)
-  html = re.sub(r"[\x00-\x08\x0b\x0e-\x1f\x7f]", "", html)
-  return html
-
 class HTMLParser:
   def __init__(self, EXCLUDE: list):
     """Constructs and prepares the HTMLParser class to be ready for use.
@@ -43,13 +30,10 @@ class HTMLParser:
     Returns:
       string: The formatted XML string.
     """
-    # file = remove_control_characters(file)
     self.html, self._dom_tree = self._create_dom_tree(file)
     self._stream = self._tree_walker(self._dom_tree)
 
     self.xml = self._convert_html_to_xml()
-    # with open(output_location, 'w+') as f:
-    #   f.write(self.xml)
     return self._pretty_xml(output_location, pretty_xml)
 
   def _create_dom_tree(self, file: str) -> Tuple[str, Any]:
@@ -116,7 +100,7 @@ class HTMLParser:
 
     if type == 'EmptyTag':
       if tag['name'] == 'img':
-        return
+        return # XXX: Disabled for now
         return self._build_img_tag(tag)
 
   def _build_start_tag(self, tag) -> Optional[str]:
@@ -177,39 +161,3 @@ class HTMLParser:
     if pretty_xml:
       return self._formatted_xml_string
     return self.xml
-
-# EXCLUDE = (
-#   'script',
-#   'style',
-#   'noscript',
-#   # 'html',
-#   )
-
-# parser = HTMLParser(EXCLUDE)
-# f = open("/home/stef/devel/transparant-https-proxy/sample.html", "r")
-# parser.parse(f.read(), output_location="/home/stef/devel/transparant-https-proxy/output.html")
-
-# # data = """
-# <!DOCTYPE html>
-# <html lang="en">
-# <head>
-#   <meta charset="UTF-8">
-#   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-#   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-#   <title>Document</title>
-# </head>
-# <body>
-#   <p>test</p>
-#   <section>
-#     <p>Content 1</p>
-#   </section>
-#   <section>
-#     <div>
-#       <p>Content 2</p>
-#       <img src="test.png" alt="test">
-#     </div>
-#   </section>
-# </body>
-# </html>
-# """
-# print(parser.parse(data))

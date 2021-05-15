@@ -1,8 +1,3 @@
-"""
-Basic skeleton of a mitmproxy addon.
-
-Run as follows: mitmproxy -s anatomy.py
-"""
 from mitmproxy import ctx
 from htmlparser.parser import HTMLParser
 
@@ -12,16 +7,18 @@ EXCLUDE = (
   'html',
   'style',
   'doctype',
-  'meta'
+  'meta',
   )
 
 parser = HTMLParser(EXCLUDE)
+class Parser:
+  def response(self, flow):
+    if not 'html' in flow.response.headers['Content-Type']:
+      return
 
-class Counter:
-    def response(self, flow):
-        flow.response.headers['Content-Type'] = 'application/xml'
-        flow.response.text = parser.parse(flow.response.text)
+    flow.response.headers['Content-Type'] = 'application/xml'
+    flow.response.text = parser.parse(flow.response.text)
 
 addons = [
-    Counter()
+    Parser()
 ]
