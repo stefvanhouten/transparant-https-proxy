@@ -4,7 +4,7 @@ import lxml.etree as etree
 import bleach
 import os
 class HTMLParser:
-  def __init__(self, EXCLUDE: list):
+  def __init__(self, EXCLUDE: list[str]):
     """Constructs and prepares the HTMLParser class to be ready for use.
 
     Args:
@@ -13,6 +13,7 @@ class HTMLParser:
     """
     self.xml = ""
     self.html = ""
+    self.skipping_tag = False
     self._formatted_xml_string = ""
     self.EXCLUDE = EXCLUDE
     TreeBuilder = html5lib.getTreeBuilder("lxml")
@@ -78,7 +79,7 @@ class HTMLParser:
         if tag is not None:
           converted_html += tag
         continue
-      if item['type'] in INTERESTED_CHARACTERS:
+      if item['type'] in INTERESTED_CHARACTERS and not self.skipping_tag:
         converted_html += bleach.clean(item['data'])
     return f'<data>{converted_html}</data>'
 
@@ -99,6 +100,7 @@ class HTMLParser:
 
     if type == 'EmptyTag':
       if tag['name'] == 'img':
+        return # XXX: Disabled for now
         return self._build_img_tag(tag)
 
   def _build_start_tag(self, tag) -> Optional[str]:
@@ -109,8 +111,10 @@ class HTMLParser:
     Returns:
       string: Formatted XML starting tag when a tag could be created, otherwise None.
     """
+    self.skipping_tag = False
     tag_name = tag['name']
     if tag_name in self.EXCLUDE:
+      self.skipping_tag = True
       return
     return f'<{tag_name}>'
 
@@ -124,6 +128,7 @@ class HTMLParser:
     """
     tag_name = tag['name']
     if tag_name in self.EXCLUDE:
+      self.skipping_tag = False
       return
     return f'</{tag_name}>'
 
@@ -139,7 +144,7 @@ class HTMLParser:
     new_tag = ""
     for tag, value in tag['data'].items():
       _, tag_name = tag
-      new_tag += f'<{tag_name}>{value}</{tag_name}>'
+      new_tag += f'<{tag_name}>{bleach.clean(value)}</{tag_name}>'
     return f'<img>{new_tag}</img>'
 
   def _pretty_xml(self, output_location, pretty_xml):
@@ -156,36 +161,3 @@ class HTMLParser:
     if pretty_xml:
       return self._formatted_xml_string
     return self.xml
-
-EXCLUDE = (
-  'script',
-  'noscript',
-  'html',
-  )
-
-parser = HTMLParser(EXCLUDE)
-
-data = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
-  <p>test</p>
-  <section>
-    <p>Content 1</p>
-  </section>
-  <section>
-    <div>
-      <p>Content 2</p>
-      <img src="test.png" alt="test">
-    </div>
-  </section>
-</body>
-</html>
-"""
-print(parser.parse(data))
