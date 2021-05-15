@@ -4,7 +4,7 @@ import lxml.etree as etree
 import bleach
 import os
 class HTMLParser:
-  def __init__(self, EXCLUDE: list):
+  def __init__(self, EXCLUDE: list[str]):
     """Constructs and prepares the HTMLParser class to be ready for use.
 
     Args:
