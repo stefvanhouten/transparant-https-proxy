@@ -4,20 +4,23 @@ import lxml.etree as etree
 import bleach
 import os
 class HTMLParser:
-  def __init__(self, EXCLUDE: list[str]):
+  def __init__(self, exclude: list[str], keep_attributes: bool=True):
     """Constructs and prepares the HTMLParser class to be ready for use.
 
     Args:
-      EXCLUDE (list[str]): A list of strings containing the elements to not include into
+      exclude (list[str]): A list of strings containing the elements to not include into
                            the parser XML.
+      keep_attributes (bool): Determines whether or not to add HTML tag attributes to the XML output.
+                              Default value is True.
     """
     self.xml = ""
     self.html = ""
-    self.skipping_tag = False
     self._formatted_xml_string = ""
-    self.EXCLUDE = EXCLUDE
-    TreeBuilder = html5lib.getTreeBuilder("lxml")
-    self._parser = html5lib.HTMLParser(tree=TreeBuilder)
+    self.keep_attributes = keep_attributes
+    self.skipping_tag = False
+    self.exclude = exclude
+
+    self._parser = html5lib.HTMLParser(tree=html5lib.getTreeBuilder("lxml"))
     self._tree_walker = html5lib.getTreeWalker('lxml')
 
   def parse(self, file: str, output_location: str=None, pretty_xml: bool=True) -> str:
@@ -32,7 +35,6 @@ class HTMLParser:
     """
     self.html, self._dom_tree = self._create_dom_tree(file)
     self._stream = self._tree_walker(self._dom_tree)
-
     self.xml = self._convert_html_to_xml()
     return self._pretty_xml(output_location, pretty_xml)
 
@@ -79,6 +81,7 @@ class HTMLParser:
         if tag is not None:
           converted_html += tag
         continue
+
       if item['type'] in INTERESTED_CHARACTERS and not self.skipping_tag:
         converted_html += bleach.clean(item['data'])
     return f'<data>{converted_html}</data>'
@@ -111,12 +114,33 @@ class HTMLParser:
     Returns:
       string: Formatted XML starting tag when a tag could be created, otherwise None.
     """
+    #When we arrive at a new starting tag we want to reset tag skipping.
     self.skipping_tag = False
     tag_name = tag['name']
-    if tag_name in self.EXCLUDE:
+
+    if tag_name in self.exclude:
       self.skipping_tag = True
       return
+
+    if self.keep_attributes and tag['data']: #Contains the attributes of a tag
+      attributes = self._extract_attributes(tag['data'])
+      return f'<{tag_name} {attributes}>'
     return f'<{tag_name}>'
+
+  def _extract_attributes(self, attributes):
+    """Extracts attributes out of a tag.
+
+    Args:
+      attributes (OrderedDict): The dict containing the attribute name and the value.
+    Returns:
+      string: Formatted string containing the tag name and value in the following format: tag="value"
+    """
+    test = []
+    for key, value in attributes.items():
+        _, attribute = key
+        # XXX: Quotes are an issue here, however they shouldn't be in HTML attributes. This doesn't mean they wont be there though :).
+        test.append(f"{attribute}='{value}'")
+    return " ".join(test)
 
   def _build_end_tag(self, tag: dict) -> Optional[str]:
     """Attempts to build the ending XML tag from the given HTML tag.
@@ -127,7 +151,7 @@ class HTMLParser:
       string: Formatted XML ending tag when a tag could be created, otherwise None.
     """
     tag_name = tag['name']
-    if tag_name in self.EXCLUDE:
+    if tag_name in self.exclude:
       self.skipping_tag = False
       return
     return f'</{tag_name}>'
