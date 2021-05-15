@@ -124,7 +124,8 @@ class HTMLParser:
 
     if self.keep_attributes and tag['data']: #Contains the attributes of a tag
       attributes = self._extract_attributes(tag['data'])
-      return f'<{tag_name} {attributes}>'
+      if attributes:
+        return f'<{tag_name} {attributes}>'
     return f'<{tag_name}>'
 
   def _extract_attributes(self, attributes):
@@ -135,12 +136,14 @@ class HTMLParser:
     Returns:
       string: Formatted string containing the tag name and value in the following format: tag="value"
     """
-    test = []
+    extracted_attributes = []
     for key, value in attributes.items():
         _, attribute = key
-        # XXX: Quotes are an issue here, however they shouldn't be in HTML attributes. This doesn't mean they wont be there though :).
-        test.append(f"{attribute}='{value}'")
-    return " ".join(test)
+        if attribute in ('class', 'id',):
+          # XXX: Quotes are an issue here, however they shouldn't be in HTML attributes. This doesn't mean they wont be there though :).
+          extracted_attributes.append(f"{attribute}='{value}'")
+    if len(extracted_attributes) >= 1:
+      return " ".join(extracted_attributes)
 
   def _build_end_tag(self, tag: dict) -> Optional[str]:
     """Attempts to build the ending XML tag from the given HTML tag.
