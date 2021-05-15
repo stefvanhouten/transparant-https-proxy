@@ -66,3 +66,15 @@ def test_exclude(htmlparser, subtests):
   for test in tests:
     with subtests.test(test=test):
       assert test['expected'] == htmlparser.parse(test['test'], pretty_xml=False)
+
+def test_tag_attributes(htmlparser, subtests):
+  tests = (
+    {'test': '<p class="classy_attribute"/>', 'expected': "<data><head></head><body><p class='classy_attribute'></p></body></data>"},
+    {'test': '<p id="classy_attribute"/>', 'expected': "<data><head></head><body><p id='classy_attribute'></p></body></data>"},
+    {'test': '<p onclick="some random shit"/>', 'expected': "<data><head></head><body><p></p></body></data>"},
+    {'test': '<p mousedown="some random shit"/>', 'expected': "<data><head></head><body><p></p></body></data>"},
+  )
+
+  for test in tests:
+    with subtests.test(test=test):
+      assert test['expected'] == htmlparser.parse(test['test'], pretty_xml=False)
