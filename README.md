@@ -112,13 +112,16 @@ Setting up and running the flask API server.
 
 Linux:
 
-```export FLASK_APP=flaskr
+```bash
+export FLASK_APP=flaskr
 export FLASK_ENV=development
-flask run```
+flask run
+```
 
 Windows:
 
-```$env:FLASK_APP = "flaskr"
+```bash
+$env:FLASK_APP = "flaskr"
 $env:FLASK_ENV = "development"
 flask run```
 
