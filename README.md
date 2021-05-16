@@ -7,38 +7,89 @@ First of all we need to setup a virtual environment, this prevents having shared
 and helps manage the packages. To do this we first need to have `Python 3.8` on our computer.
 Check your python version with the following commands depending on how you installed Python:
 
-`python -V`
+```python
+python -V
+```
 or
-`python3 -V`
+```python
+python3 -V
+```
 
 If you have the correct version installed, run the command with whichever of the above commands gave you the correct version in the directory "transparant-https-proxy" (project directory).
+```python
+python -m venv env
+```
 
-`python -m venv env`
 or
-`python3 venv env`
+```python
+python3 venv env
+```
 
 This might take a little bit of time to complete. When the command is done with execution, you will now have a new folder called env in your project directory. Now we need to activate this environment in the project directory:
 
 For Windows:
-`env/scripts/activate`
+```
+env/scripts/activate
+```
+
 For Linux (I think):
-`source env/bin/activate`
+
+```bash
+source env/bin/activate
+```
 
 Now that you have your virtual environment activate you should see (env) PS path_to_the_current_directory in your command line interface. The next step is to install all required packages for this project, because we are using a virtual environment, this is really easy to maintain and setup. All you need to do to get started is the following:
 
-`pip install -r requirements.txt`
+```bash
+pip install -r requirements.txt
+```
+
 or depending on your python installation:
-`pip3 install -r .\requirements.txt`
+
+```bash
+pip3 install -r .\requirements.txt
+```
 
 If you get the message that your pip version is deprecated use:
-`python -m pip install --upgrade pip`
+
+```python
+python -m pip install --upgrade pip
+```
+
 or
-`python3 -m pip3 install --upgrade pip`
+```python
+python3 -m pip3 install --upgrade pip
+```
 
 ## Updating the requirements.txt after adding a new package
-`pip freeze > requirements.txt`
+```bash
+pip freeze > requirements.txt
+```
 or
-`pip3 freeze > requirements.txt`
+```bash
+pip3 freeze > requirements.txt
+```
+
+
+## Setting up Flask
+Setting up and running the flask API server.
+
+Linux:
+
+```bash
+export FLASK_APP=flaskr
+export FLASK_ENV=development
+flask run
+```
+
+Windows:
+
+```bash
+$env:FLASK_APP = "flaskr"
+$env:FLASK_ENV = "development"
+flask run
+```
+
 ## Creating the proxy
 Visit https://mitmproxy.org/ and click either "Download Windows Installer" or "Download Linux Binaries (WSL)".
 A file will be downloaded. Click on this file and it will execute.
@@ -76,22 +127,16 @@ Click on _Certificate_ and you should see the following:
 
 ![image](https://user-images.githubusercontent.com/38207747/117338929-6dcb3880-ae9f-11eb-8c77-367b76fa823c.png)
 
-
-## Flask
-Setting up and running the flask API server.
-Linux:
-`export FLASK_APP=flaskr`
-`export FLASK_ENV=development`
-`flask run`
-Windows:
-`$env:FLASK_APP = "flaskr"`
-`$env:FLASK_ENV = "development"`
-`flask run`
 ## Unittests
+
 To run the unittests:
-`python -m pytest tests`
+```python
+python -m pytest tests
+```
 Or:
-`make test`
+```bash
+make test
+```
 ## Congratulations!
 Your self signed certificate has been successfully generated and handed out to the website and all the requests and responses are being sent through your proxy.
 
