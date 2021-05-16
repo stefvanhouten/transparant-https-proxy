@@ -69,6 +69,27 @@ or
 ```bash
 pip3 freeze > requirements.txt
 ```
+
+
+## Setting up Flask
+Setting up and running the flask API server.
+
+Linux:
+
+```bash
+export FLASK_APP=flaskr
+export FLASK_ENV=development
+flask run
+```
+
+Windows:
+
+```bash
+$env:FLASK_APP = "flaskr"
+$env:FLASK_ENV = "development"
+flask run
+```
+
 ## Creating the proxy
 Visit https://mitmproxy.org/ and click either "Download Windows Installer" or "Download Linux Binaries (WSL)".
 A file will be downloaded. Click on this file and it will execute.
@@ -106,31 +127,16 @@ Click on _Certificate_ and you should see the following:
 
 ![image](https://user-images.githubusercontent.com/38207747/117338929-6dcb3880-ae9f-11eb-8c77-367b76fa823c.png)
 
-
-## Flask
-Setting up and running the flask API server.
-
-Linux:
-
-```bash
-export FLASK_APP=flaskr
-export FLASK_ENV=development
-flask run
-```
-
-Windows:
-
-```bash
-$env:FLASK_APP = "flaskr"
-$env:FLASK_ENV = "development"
-flask run```
-
 ## Unittests
 
 To run the unittests:
-```python -m pytest tests```
+```python
+python -m pytest tests
+```
 Or:
-```make test```
+```bash
+make test
+```
 ## Congratulations!
 Your self signed certificate has been successfully generated and handed out to the website and all the requests and responses are being sent through your proxy.
 
