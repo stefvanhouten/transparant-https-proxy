@@ -10,7 +10,6 @@ Check your python version with the following commands depending on how you insta
 ```python
 python -V
 ```
-
 or
 ```python
 python3 -V
@@ -22,7 +21,6 @@ python -m venv env
 ```
 
 or
-
 ```python
 python3 venv env
 ```
@@ -36,28 +34,41 @@ env/scripts/activate
 
 For Linux (I think):
 
-```source env/bin/activate```
+```bash
+source env/bin/activate
+```
 
 Now that you have your virtual environment activate you should see (env) PS path_to_the_current_directory in your command line interface. The next step is to install all required packages for this project, because we are using a virtual environment, this is really easy to maintain and setup. All you need to do to get started is the following:
 
-```pip install -r requirements.txt```
+```bash
+pip install -r requirements.txt
+```
 
 or depending on your python installation:
 
-```pip3 install -r .\requirements.txt```
+```bash
+pip3 install -r .\requirements.txt
+```
 
 If you get the message that your pip version is deprecated use:
 
-```python -m pip install --upgrade pip```
+```python
+python -m pip install --upgrade pip
+```
 
 or
-
-```python3 -m pip3 install --upgrade pip```
+```python
+python3 -m pip3 install --upgrade pip
+```
 
 ## Updating the requirements.txt after adding a new package
-`pip freeze > requirements.txt`
+```bash
+pip freeze > requirements.txt
+```
 or
-`pip3 freeze > requirements.txt`
+```bash
+pip3 freeze > requirements.txt
+```
 ## Creating the proxy
 Visit https://mitmproxy.org/ and click either "Download Windows Installer" or "Download Linux Binaries (WSL)".
 A file will be downloaded. Click on this file and it will execute.
