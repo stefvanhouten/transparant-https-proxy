@@ -12,3 +12,8 @@ test: venv
 clean:
 	rm -rf venv
 	find -iname "*.pyc" -delete
+
+fix: venv ## Automatically fix style issues
+	.venv/bin/activate; python -m autoflake -ri --remove-all-unused-imports api/ htmlparser/ tests/
+	.venv/bin/activate; python -m isort api/ htmlparser/ tests/
+	.venv/bin/activate; python -m black api/ htmlparser/ tests/
