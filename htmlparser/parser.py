@@ -7,7 +7,7 @@ import lxml.etree as etree
 
 
 class HTMLParser:
-    def __init__(self, exclude: list[str], keep_attributes: bool = True):
+    def __init__(self, exclude, keep_attributes):#NOTICE, TYPE HINTING HAS BEEN REMOVED ADD BACK LATER ON
         """Constructs and prepares the HTMLParser class to be ready for use.
 
         Args:
