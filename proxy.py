@@ -8,7 +8,6 @@ class Parser:
   def request(self, flow):
     res = requests.get('http://127.0.0.1:5000/proxy')
     data = json.loads(res.content)
-    #NOTICE, ATTRIBUTE DEFAULT TRUE IN PARSER.PY HAS BEEN REMOVED AND THEREFORE TRUE HAS BEEN IMPLEMENTED HERE
     self.parser = HTMLParser(data.get('exclude', ['html', 'script', 'style']))
 
   def response(self, flow):
