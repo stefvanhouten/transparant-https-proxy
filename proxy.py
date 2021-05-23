@@ -9,13 +9,13 @@ class Parser:
     res = requests.get('http://127.0.0.1:5000/proxy')
     data = json.loads(res.content)
     #NOTICE, ATTRIBUTE DEFAULT TRUE IN PARSER.PY HAS BEEN REMOVED AND THEREFORE TRUE HAS BEEN IMPLEMENTED HERE
-    self.parser = HTMLParser(data.get('exclude', ['html', 'script', 'style']), True)
+    self.parser = HTMLParser(data.get('exclude', ['html', 'script', 'style']))
 
   def response(self, flow):
     if not 'html' in flow.response.headers['Content-Type']:
       return
 
-    utf8String = self.charset_normalizer(flow.response.content)
+    utf8String = self.charset_normalizer(flow.response.raw_content)
 
     flow.response.headers['Content-Type'] = 'application/xml'
     flow.response.text = self.parser.parse(utf8String)

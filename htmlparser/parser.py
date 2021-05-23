@@ -1,5 +1,5 @@
 import os
-from typing import Any, BinaryIO, Optional, Tuple
+from typing import Any, List, BinaryIO, Optional, Tuple
 
 import bleach
 import html5lib
@@ -7,7 +7,7 @@ import lxml.etree as etree
 
 
 class HTMLParser:
-    def __init__(self, exclude, keep_attributes):#NOTICE, TYPE HINTING HAS BEEN REMOVED ADD BACK LATER ON
+    def __init__(self, exclude: List[str], keep_attributes: bool = True):
         """Constructs and prepares the HTMLParser class to be ready for use.
 
         Args:
