@@ -13,7 +13,7 @@ class Parser:
     if not 'html' in flow.response.headers['Content-Type']:
       return
 
-    flow.response.headers['Content-Type'] = 'application/xml'
+    flow.response.headers['Content-Type'] = 'application/xml; charset=utf-8'
     flow.response.text = self.parser.parse(flow.response.text)
 
 addons = [
