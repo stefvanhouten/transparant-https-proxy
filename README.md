@@ -77,7 +77,7 @@ Setting up and running the flask API server.
 Linux:
 
 ```bash
-export FLASK_APP=flaskr
+export FLASK_APP=api
 export FLASK_ENV=development
 flask run
 ```
@@ -85,7 +85,7 @@ flask run
 Windows:
 
 ```bash
-$env:FLASK_APP = "flaskr"
+$env:FLASK_APP = "api"
 $env:FLASK_ENV = "development"
 flask run
 ```
