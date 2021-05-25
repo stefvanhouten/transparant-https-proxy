@@ -41,7 +41,8 @@ class HTMLParser:
         self.html, self._dom_tree = self._create_dom_tree(file)
         self._stream = self._tree_walker(self._dom_tree)
         self.xml = self._convert_html_to_xml()
-        return self._pretty_xml(output_location, pretty_xml)
+        return self.xml
+        # return self._pretty_xml(output_location, pretty_xml)
 
     def _create_dom_tree(self, file: str) -> Tuple[str, Any]:
         """Determines whether the given string is a path or the HTML, then either reads the file or converts
@@ -111,7 +112,6 @@ class HTMLParser:
 
         if type == "EmptyTag":
             if tag["name"] == "img":
-                return  # XXX: Disabled for now
                 return self._build_img_tag(tag)
 
     def _build_start_tag(self, tag) -> Optional[str]:
@@ -149,10 +149,13 @@ class HTMLParser:
             _, attribute = key
             if attribute in (
                 "class",
-                "id",
+                "href",
+                "id"
             ):
                 # XXX: Quotes are an issue here, however they shouldn't be in HTML attributes. This doesn't mean they wont be there though :).
-                extracted_attributes.append(f"{attribute}='{value}'")
+                # if attribute == 'href':
+                #   print(value)
+                extracted_attributes.append(f"{attribute}='{bleach.clean(value)}'")
         if len(extracted_attributes) >= 1:
             return " ".join(extracted_attributes)
 
@@ -201,3 +204,7 @@ class HTMLParser:
         if pretty_xml:
             return self._formatted_xml_string
         return self.xml
+
+# if __name__ == "__main__":
+#   parser = HTMLParser(exclude=['html', 'script', 'style'])
+#   print(parser.parse('/home/stef/devel/transparant-https-proxy/sample.html'))
