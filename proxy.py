@@ -15,13 +15,12 @@ class Parser:
       return
 
     utf8String = self.charset_normalizer(flow.response.raw_content)
-
     flow.response.headers['Content-Type'] = 'application/xml'
     flow.response.text = self.parser.parse(utf8String)
 
   def charset_normalizer(self, byte_string):
     result = CnM.from_bytes(
-      byte_string,
+      str(byte_string),
       preemptive_behaviour=True,  # Determine if we should look into my_byte_str (ASCII-Mode) for pre-defined encoding
       explain=True  # Print on screen what is happening when searching for a match (FOR DEBUGGING PURPOSES)
     ).best().first() #KEEP ONLY THE MATCHES WITH THE LOWEST RATIO OF CHAOS - SELECT THE FIRST MATCH AVAILABLE
