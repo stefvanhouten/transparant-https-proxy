@@ -204,7 +204,3 @@ class HTMLParser:
         if pretty_xml:
             return self._formatted_xml_string
         return self.xml
-
-# if __name__ == "__main__":
-#   parser = HTMLParser(exclude=['html', 'script', 'style'])
-#   print(parser.parse('/home/stef/devel/transparant-https-proxy/sample.html'))
