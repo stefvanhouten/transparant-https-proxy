@@ -1,5 +1,5 @@
 import os
-from typing import Any, BinaryIO, Optional, Tuple
+from typing import Any, BinaryIO, List, Optional, Tuple
 
 import bleach
 import html5lib
@@ -7,7 +7,7 @@ import lxml.etree as etree
 
 
 class HTMLParser:
-    def __init__(self, exclude: list[str], keep_attributes: bool = True):
+    def __init__(self, exclude: List[str], keep_attributes: bool = True):
         """Constructs and prepares the HTMLParser class to be ready for use.
 
         Args:
@@ -147,11 +147,7 @@ class HTMLParser:
         extracted_attributes = []
         for key, value in attributes.items():
             _, attribute = key
-            if attribute in (
-                "class",
-                "href",
-                "id"
-            ):
+            if attribute in ("class", "href", "id"):
                 # XXX: Quotes are an issue here, however they shouldn't be in HTML attributes. This doesn't mean they wont be there though :).
                 # if attribute == 'href':
                 #   print(value)
@@ -204,7 +200,3 @@ class HTMLParser:
         if pretty_xml:
             return self._formatted_xml_string
         return self.xml
-
-# if __name__ == "__main__":
-#   parser = HTMLParser(exclude=['html', 'script', 'style'])
-#   print(parser.parse('/home/stef/devel/transparant-https-proxy/sample.html'))
