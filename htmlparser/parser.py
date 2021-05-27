@@ -1,5 +1,5 @@
 import os
-from typing import Any, List, BinaryIO, Optional, Tuple
+from typing import Any, BinaryIO, List, Optional, Tuple
 
 import bleach
 import html5lib
@@ -147,11 +147,7 @@ class HTMLParser:
         extracted_attributes = []
         for key, value in attributes.items():
             _, attribute = key
-            if attribute in (
-                "class",
-                "href",
-                "id"
-            ):
+            if attribute in ("class", "href", "id"):
                 # XXX: Quotes are an issue here, however they shouldn't be in HTML attributes. This doesn't mean they wont be there though :).
                 # if attribute == 'href':
                 #   print(value)
