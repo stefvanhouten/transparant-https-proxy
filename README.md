@@ -79,6 +79,7 @@ Linux:
 ```bash
 export FLASK_APP=api
 export FLASK_ENV=development
+export SQLALCHEMY_DATABASE_URI=mysql+pymsql://{username}:{password}@{host}/{database}
 flask run
 ```
 
