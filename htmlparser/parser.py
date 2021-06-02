@@ -123,7 +123,7 @@ class HTMLParser:
           string: Formatted XML starting tag when a tag could be created, otherwise None.
         """
         # When we arrive at a new starting tag we want to reset tag skipping.
-        self.skipping_tag = False
+        # self.skipping_tag = False
         tag_name = tag["name"]
 
         if tag_name in self.exclude:

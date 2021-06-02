@@ -1,31 +1,29 @@
 import pytest
-
+import requests
 from htmlparser.parser import HTMLParser
-
-EXCLUDE = (
-    "script",
-    "noscript",
-    "html",
-    "style",
-)
 
 
 @pytest.fixture(scope="module")
 def htmlparser():
-    yield HTMLParser(EXCLUDE)
+    yield HTMLParser([
+        "script",
+        "noscript",
+        "style",
+        "custom"
+    ])
 
 
 @pytest.fixture(scope="module")
 def path_to_files():
     yield (
-        "/home/stef/devel/transparant-https-proxy/tests/websites/so.html",
-        "/home/stef/devel/transparant-https-proxy/tests/websites/baidu.html",
+        "/tests/websites/so.html",
+        "/tests/websites/baidu.html",
     )
 
 
 def test_incomplete_html(htmlparser):
     output = htmlparser.parse("<p>", pretty_xml=False)
-    EXPECTED = "<data><head></head><body><p></p></body></data>"
+    EXPECTED = "<data><html><head></head><body><p></p></body></html></data>"
     assert output == EXPECTED
 
 
@@ -38,23 +36,23 @@ def match_output_vs_expected(tests, subtests, htmlparser):
 
 def test_broken_html(htmlparser, subtests):
     tests = (
-        {"test": "</p>", "expected": "<data><head></head><body></body></data>"},
+        {"test": "</p>", "expected": "<data><html><head></head><body></body></html></data>"},
         {
             "test": "</div><p>",
-            "expected": "<data><head></head><body><p></p></body></data>",
+            "expected": "<data><html><head></head><body><p></p></body></html></data>",
         },
-        {"test": "</a></p></b>", "expected": "<data><head></head><body></body></data>"},
+        {"test": "</a></p></b>", "expected": "<data><html><head></head><body></body></html></data>"},
         {
             "test": "</p></p></p></p></p>",
-            "expected": "<data><head></head><body></body></data>",
+            "expected": "<data><html><head></head><body></body></html></data>",
         },
         {
             "test": "<p></b>",
-            "expected": "<data><head></head><body><p></p></body></data>",
+            "expected": "<data><html><head></head><body><p></p></body></html></data>",
         },
         {
             "test": "<div><h1>hello world</p></div>",
-            "expected": "<data><head></head><body><div><h1>hello world<p></p></h1></div></body></data>",
+            "expected": "<data><html><head></head><body><div><h1>hello world<p></p></h1></div></body></html></data>",
         },
     )
     match_output_vs_expected(tests, subtests, htmlparser)
@@ -62,21 +60,21 @@ def test_broken_html(htmlparser, subtests):
 
 def test_html_entities(htmlparser, subtests):
     tests = (
-        {"test": "&lt;", "expected": "<data><head></head><body>&lt;</body></data>"},
-        {"test": "&gt;", "expected": "<data><head></head><body>&gt;</body></data>"},
+        {"test": "&lt;", "expected": "<data><html><head></head><body>&lt;</body></html></data>"},
+        {"test": "&gt;", "expected": "<data><html><head></head><body>&gt;</body></html></data>"},
         {
             "test": "&lt;p&gt;",
-            "expected": "<data><head></head><body>&lt;p&gt;</body></data>",
+            "expected": "<data><html><head></head><body>&lt;p&gt;</body></html></data>",
         },
-        {"test": "&amp;", "expected": "<data><head></head><body>&amp;</body></data>"},
+        {"test": "&amp;", "expected": "<data><html><head></head><body>&amp;</body></html></data>"},
         {
             "test": "&quot;",
-            "expected": '<data><head></head><body>"</body></data>',
-        },  # Apparently &qout is accepted to escape to "
+            "expected": '<data><html><head></head><body>"</body></html></data>',
+        },
         {
             "test": "&apos;",
-            "expected": "<data><head></head><body>'</body></data>",
-        },  # Same here for &apos to be '
+            "expected": "<data><html><head></head><body>'</body></html></data>",
+        },
     )
     match_output_vs_expected(tests, subtests, htmlparser)
 
@@ -86,20 +84,133 @@ def test_no_unexpected_errors(htmlparser, subtests, path_to_files):
         with subtests.test(path_to_file=path_to_file):
             htmlparser.parse(path_to_file)
 
+def test_parse_websites(htmlparser, subtests):
+    urls = [
+        "https://www.google.com",
+        "https://github.com/"
+        ]
+    for url in urls:
+        with subtests.test(url=url):
+            response = requests.get(url).text
+            htmlparser.parse(response)
 
 def test_exclude(htmlparser, subtests):
     tests = (
         {
-            "test": "<script>script</script",
-            "expected": "<data><head></head><body></body></data>",
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <title>Document</title>
+                <script>test</script>
+                </head>
+                <body>
+                    <script>test</script>
+                </body>
+                </html>
+                """,
+                "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
         },
         {
-            "test": "<noscript>noscript</noscript>",
-            "expected": "<data><head></head><body></body></data>",
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <title>Document</title>
+                <script>test</script>
+                </head>
+                <body>
+                    <script>test<p>hello world</p></script>
+                </body>
+                </html>
+                """,
+                "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
         },
         {
-            "test": "<style>noscript</style>",
-            "expected": "<data><head></head><body></body></data>",
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <title>Document</title>
+                </head>
+                <body>
+                    <noscript>test</noscript>
+                </body>
+                </html>
+                """,
+            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+        },
+        {
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <script>test</script>
+                <title>Document</title>
+                <script>test</script>
+                </head>
+                <body>
+                    <script>test</script>
+                    <custom>test</custom>
+                </body>
+                </html>
+                """,
+            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+        },
+        {
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <script>test</script>
+                <title>Document</title>
+                <script>test</script>
+                <custom>test</custom>
+                </head>
+                <body>
+                    <script>test</script>
+                    <custom>test
+                    <custom>test</custom></custom>
+                </body>
+                </html>
+                """,
+            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+        },
+        {
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <script>test</script>
+                <title>Document</title>
+                <script>test</script>
+                </head>
+                <body>
+                    <p><script>test</script>hello</p>
+                    <script>test</script>
+                    <custom>test</custom>
+                </body>
+                </html>
+                """,
+            "expected": "<data><html><head><title>Document</title></head><body><p>hello</p></body></html></data>",
+        },
+        {
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <script>test</script>
+                <title>Document</title>
+                <script>test</script>
+                </head>
+                <body>
+                    <p><script>test</script><b>hello</b></p>
+                    <script>test</script>
+                    <custom>test</custom>
+                </body>
+                </html>
+                """,
+            "expected": "<data><html><head><title>Document</title></head><body><p><b>hello</b></p></body></html></data>",
         },
     )
     for test in tests:
@@ -111,19 +222,55 @@ def test_tag_attributes(htmlparser, subtests):
     tests = (
         {
             "test": '<p class="classy_attribute"/>',
-            "expected": "<data><head></head><body><p class='classy_attribute'></p></body></data>",
+            "expected": "<data><html><head></head><body><p class='classy_attribute'></p></body></html></data>",
         },
         {
             "test": '<p id="classy_attribute"/>',
-            "expected": "<data><head></head><body><p id='classy_attribute'></p></body></data>",
+            "expected": "<data><html><head></head><body><p id='classy_attribute'></p></body></html></data>",
         },
         {
             "test": '<p onclick="some random shit"/>',
-            "expected": "<data><head></head><body><p></p></body></data>",
+            "expected": "<data><html><head></head><body><p></p></body></html></data>",
         },
         {
             "test": '<p mousedown="some random shit"/>',
-            "expected": "<data><head></head><body><p></p></body></data>",
+            "expected": "<data><html><head></head><body><p></p></body></html></data>",
+        },
+        {
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <script>test</script>
+                <title>Document</title>
+                <script>test</script>
+                </head>
+                <body>
+                    <p class="aardappel"><script>test</script><b>hello</b></p>
+                    <script>test</script>
+                    <custom>test</custom>
+                </body>
+                </html>
+                """,
+            "expected": "<data><html><head><title>Document</title></head><body><p class='aardappel'><b>hello</b></p></body></html></data>",
+        },
+        {
+            "test": """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <script>test</script>
+                <title>Document</title>
+                <script>test</script>
+                </head>
+                <body>
+                    <p class="aardappel"><script>test</script><b id="geneste-aardappel">hello</b></p>
+                    <script id="banaan">test</script>
+                    <custom>test</custom>
+                </body>
+                </html>
+                """,
+            "expected": "<data><html><head><title>Document</title></head><body><p class='aardappel'><b id='geneste-aardappel'>hello</b></p></body></html></data>",
         },
     )
 
