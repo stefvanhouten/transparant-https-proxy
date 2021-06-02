@@ -12,40 +12,37 @@ class ContentDecoder:
         self.custom_decode()
 
     def decode(
-        self, flow, encoding: str, errors: str = 'strict'
+        self, flow, encoding: str
     ) -> Union[None, str, bytes]:
         """
         Decode the given input object
         Returns:
             The decoded value
-        Raises:
-            ValueError, if decoding fails.
+        Or:
+            None
         """
         if flow.response.raw_content is None:
             return None
 
         try:
+            #check whether compression is a single compression
             if encoding in ("gzip", "deflate", "br", "zstd"):
                 decoded = self.custom_decode[encoding](flow.response.raw_content)
+                return decoded
             else:
-                pass
+                #multiple compressions have been used
+                compressions = self.custom_decode[encoding]
 
-            return decoded
+                for method in compressions:
+                    method(flow.response.raw_content)
         except:
-            i = 0
-            # Retrieve an integer once, rather then creating overhead in the if statement
-            decodingsLength = len(self.decodings)
-
-            while True:
-                #if charset_normalizer(flow.response.content)
+            for decompressionMethod in self.custom_decode:
                 try:
-                    flow.request.headers.set('content-encoding', self.encodings[i])
-                    # after setting new content-encoding header, let mitmproxy try to decode with the new header
-                    flow.response.content
+                    decoded = self.custom_decode[decompressionMethod](flow.response.raw_content)
+                    return decoded
                 except:
-                    i += 1
-                    if i > decodingsLength:
-                        return None #None will be returned, upon complete failure
+                    pass
+            return None
 
 
     def identity(self, content):
@@ -96,30 +93,24 @@ class ContentDecoder:
 
     def custom_decode(self):
         self.custom_decode = {
-            "none": self.identity,
-            "identity": self.identity,
             "gzip": self.decode_gzip,
             "deflate": self.decode_deflate,
             "deflateRaw": self.decode_deflate,
             "br": self.decode_brotli,
             "zstd": self.decode_zstd,
+            "identity": self.identity,
+            "none": self.identity
         }
 
 
 
-[
-      'gzip, compress, deflate, br',
-      'gzip, compress, deflate',
-      'gzip, compress, br',
-      'gzip, deflate, br',
-      'compress, deflate, br',
-      'gzip, deflate',
-      'gzip, br',
-      'compress, br',
-      'deflate, br',
-      'gzip, compress',
-      'compress, deflate',
-      'compress',
-      'br',
-      'gzip'
-    ]
+# [
+#       'gzip, deflate, br',
+#       'gzip, deflate',
+#       'gzip, br',
+#       'gzip, deflate, br',
+#       'deflate, br',
+#       'gzip, deflate',
+#       'gzip, br',
+#       'deflate, br',
+#     ]

@@ -50,25 +50,6 @@ class Parser:
     flow.response.headers['Content-Type'] = 'application/xml; charset=utf-8'
     flow.response.text = self.parser.parse(utf8String)
 
-
-  def decode(self, flow):
-    i = 0
-    # Retrieve an integer once, rather then creating overhead in the if statement
-    decodingsLength = len(self.decodings)
-
-    while True:
-      #if charset_normalizer(flow.response.content)
-      try:
-        flow.request.headers.set('Content-encoding', self.encodings[i])
-        # after setting new content-encoding header, let mitmproxy try to decode with the new header
-        flow.response.content
-      except:
-        i += 1
-        if i > decodingsLength:
-          break
-
-    return None
-
   def get_content(self, flow) -> Optional[bytes]:
       """
       Similar to `Message.content`, but does not raise if `strict` is `False`.
@@ -76,20 +57,18 @@ class Parser:
       """
       if flow.response.raw_content is None:
           return None
-      ce = flow.response.headers["Content-encoding"]##THSI WORKS PROGRESS TOMROW
+
+      ce = flow.response.headers["Content-encoding"]
+
       if ce:
-          try:
-              encoding = ContentDecoder()
-              content = encoding.decode(flow, ce)
-              return content
-              # A client may illegally specify a byte -> str encoding here (e.g. utf8)
-              if isinstance(content, str):
-                  #return None
-                  raise Exception("INSTANCE OF STR!")
-              return content
-          except:
-              #return flow.response.raw_content
-              raise Exception("TRY IN GET_CONTENT DID NOT WORK")
+        encoding = ContentDecoder()
+        content = encoding.decode(flow, ce)
+        return content
+        # A client may illegally specify a byte -> str encoding here (e.g. utf8)
+        if isinstance(content, str):
+            #return None
+            raise Exception("INSTANCE OF STR!")
+        return content
       else:
           #return flow.response.raw_content
           raise Exception("NO HEADER FOUND IN GET_CONTENT")
