@@ -12,15 +12,6 @@ def htmlparser():
         "custom"
     ])
 
-
-@pytest.fixture(scope="module")
-def path_to_files():
-    yield (
-        "/tests/websites/so.html",
-        "/tests/websites/baidu.html",
-    )
-
-
 def test_incomplete_html(htmlparser):
     output = htmlparser.parse("<p>", pretty_xml=False)
     EXPECTED = "<data><html><head></head><body><p></p></body></html></data>"
@@ -62,6 +53,8 @@ def test_html_entities(htmlparser, subtests):
     tests = (
         {"test": "&lt;", "expected": "<data><html><head></head><body>&lt;</body></html></data>"},
         {"test": "&gt;", "expected": "<data><html><head></head><body>&gt;</body></html></data>"},
+        {"test": "&gt;&lt;&gt;", "expected": "<data><html><head></head><body>&gt;&lt;&gt;</body></html></data>"},
+        {"test": "&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;", "expected": "<data><html><head></head><body>&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;</body></html></data>"},
         {
             "test": "&lt;p&gt;",
             "expected": "<data><html><head></head><body>&lt;p&gt;</body></html></data>",
@@ -75,19 +68,23 @@ def test_html_entities(htmlparser, subtests):
             "test": "&apos;",
             "expected": "<data><html><head></head><body>'</body></html></data>",
         },
+        {
+            "test": "&apos;&gt;&apos;&quot;",
+            "expected": "<data><html><head></head><body>'&gt;'\"</body></html></data>",
+        },
     )
     match_output_vs_expected(tests, subtests, htmlparser)
 
 
-def test_no_unexpected_errors(htmlparser, subtests, path_to_files):
-    for path_to_file in path_to_files:
-        with subtests.test(path_to_file=path_to_file):
-            htmlparser.parse(path_to_file)
-
-def test_parse_websites(htmlparser, subtests):
+def test_no_unexpected_errors(htmlparser, subtests):
     urls = [
         "https://www.google.com",
         "https://github.com/"
+        "https://www.youtube.com/",
+        "https://www.reddit.com/",
+        "https://www.facebook.com",
+        "https://www.baidu.com/",
+        "https://www.banggood.com/?akmClientCountry=NL&"
         ]
     for url in urls:
         with subtests.test(url=url):
