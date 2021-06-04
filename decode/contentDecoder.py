@@ -27,21 +27,51 @@ class ContentDecoder:
         try:
             #check whether compression is a single compression
             if encoding in ("gzip", "deflate", "br", "zstd"):
-                decoded = self.custom_decode[encoding](flow.response.raw_content)
+                decoded = self.single_compression[encoding](flow.response.raw_content)
                 return decoded
             else:
-                #multiple compressions have been used
-                compressions = self.custom_decode[encoding]
+                #multiple compressions have been used -> list is returned
+                compressions = self.multiple_compression[encoding]
 
-                for method in compressions:
-                    method(flow.response.raw_content)
-        except:
-            for decompressionMethod in self.custom_decode:
+                decompressedContent = ""
+
                 try:
-                    decoded = self.custom_decode[decompressionMethod](flow.response.raw_content)
+                    for decompressMethod in compressions:
+                        if not decompressedContent:
+                            decompressedContent = decompressMethod(flow.response.raw_content)
+                        else:
+                            decompressedContent = decompressMethod(decompressedContent)
+
+                    return decompressedContent
+                except:
+
+                    decompressedContent = ""
+
+                    # check for multiple compression combinations
+                    for decompressionMethod in self.multiple_compression:
+                        try:
+                            for decompressMethod in decompressionMethod:
+                                if not decompressedContent:
+                                    decompressedContent = decompressMethod(flow.response.raw_content)
+                                else:
+                                    decompressedContent = decompressMethod(decompressedContent)
+
+                            return decompressedContent
+                        except:
+                            # reset to prevent new cycle from appending to old cycle
+                            decompressedContent = ""
+                            pass
+
+                return None
+        except:
+            # check for each single compression. Header cannot be trusted
+            for decompressionMethod in self.single_compression:
+                try:
+                    decoded = self.single_compression[decompressionMethod](flow.response.raw_content)
                     return decoded
                 except:
                     pass
+            
             return None
 
 
@@ -92,7 +122,7 @@ class ContentDecoder:
             return zlib.decompress(content, -15)
 
     def custom_decode(self):
-        self.custom_decode = {
+        self.single_compression = {
             "gzip": self.decode_gzip,
             "deflate": self.decode_deflate,
             "deflateRaw": self.decode_deflate,
@@ -102,15 +132,16 @@ class ContentDecoder:
             "none": self.identity
         }
 
-
-
-# [
-#       'gzip, deflate, br',
-#       'gzip, deflate',
-#       'gzip, br',
-#       'gzip, deflate, br',
-#       'deflate, br',
-#       'gzip, deflate',
-#       'gzip, br',
-#       'deflate, br',
-#     ]
+        self.multiple_compression = {
+            "gzip, deflate, br, zstd": [self.decode_gzip, self.decode_deflate, self.decode_brotli, self.decode_zstd],
+            "gzip, deflate, br": [self.decode_gzip, self.decode_deflate, self.decode_brotli],
+            "gzip, deflate, zstd": [self.decode_gzip, self.decode_deflate, self.decode_zstd],
+            "gzip, br, zstd": [self.decode_gzip, self.decode_brotli, self.decode_zstd],
+            "deflate, br, zstd": [self.decode_deflate, self.decode_brotli, self.decode_zstd],
+            "deflate, zstd": [self.decode_deflate, self.decode_zstd],
+            "deflate, br": [self.decode_deflate, self.decode_brotli],
+            "br, zstd": [self.decode_brotli, self.decode_zstd],
+            "gzip, br": [self.decode_gzip, self.decode_brotli],
+            "gzip, deflate": [self.decode_gzip, self.decode_deflate],
+            "gzip, zstd": [self.decode_gzip, self.decode_zstd]
+        }

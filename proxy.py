@@ -1,7 +1,7 @@
 import requests
 import json
 
-from typing import Optional
+from typing import Union, Optional, AnyStr, overload
 from charset_normalizer import CharsetNormalizerMatches as CnM
 from mitmproxy import ctx
 from decode.contentDecoder import ContentDecoder
@@ -16,25 +16,7 @@ def exclude_list():
 class Parser:
   def request(self, flow):
     self.parser = HTMLParser(exclude_list())
-    self.encodings = self.content_encodings()
 
-  def content_encodings(self):
-    return [
-      'gzip, compress, deflate, br',
-      'gzip, compress, deflate',
-      'gzip, compress, br',
-      'gzip, deflate, br',
-      'compress, deflate, br',
-      'gzip, deflate',
-      'gzip, br',
-      'compress, br',
-      'deflate, br',
-      'gzip, compress',
-      'compress, deflate',
-      'compress',
-      'br',
-      'gzip'
-    ]
 
   def response(self, flow):
     if not 'html' in flow.response.headers.get('Content-Type', ""):
@@ -43,35 +25,39 @@ class Parser:
     decompressedContent = self.get_content(flow)
 
     if decompressedContent is not None:
+      # Content could be uncompressed bytes, even though server-side could've compressed!
       utf8String = self.charset_normalizer(decompressedContent)
     else:
       utf8String = "Content could not be decompressed!"
     
     flow.response.headers['Content-Type'] = 'application/xml; charset=utf-8'
-    flow.response.text = self.parser.parse(utf8String)
 
-  def get_content(self, flow) -> Optional[bytes]:
-      """
-      Similar to `Message.content`, but does not raise if `strict` is `False`.
-      Instead, the compressed message body is returned as-is.
-      """
+    try:
+      flow.response.text = self.parser.parse(utf8String)
+    except:
+      flow.response.text = self.parser.parse("Parser could not convert to XML!")
+
+  def get_content(self, flow) -> Union[None, str, bytes]:
       if flow.response.raw_content is None:
           return None
 
       ce = flow.response.headers["Content-encoding"]
+      encoding = ContentDecoder()
 
       if ce:
-        encoding = ContentDecoder()
         content = encoding.decode(flow, ce)
-        return content
+
         # A client may illegally specify a byte -> str encoding here (e.g. utf8)
         if isinstance(content, str):
-            #return None
-            raise Exception("INSTANCE OF STR!")
+            return "Illegally specified content-encoding!"
+
         return content
       else:
-          #return flow.response.raw_content
-          raise Exception("NO HEADER FOUND IN GET_CONTENT")
+        # no content-header was provided
+        # force decode to fail and try all possible decompressions
+        # note: could be that there is no compression done server side, uncompressed will be returned
+        content = encoding.decode(flow, "")
+        return content
 
   def charset_normalizer(self, byte_string):
     result = CnM.from_bytes(
@@ -85,6 +71,8 @@ class Parser:
       #encode to UTF-8
       utf8String = str(result)
       return utf8String
+    else:
+      return "Could not guess content-type! Either set the threshold higher, or the file is simply too malformed."
 
     return None
 
