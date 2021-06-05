@@ -41,7 +41,7 @@ class Parser:
       if flow.response.raw_content is None:
           return None
 
-      ce = flow.response.headers["Content-encoding"]
+      ce = flow.response.headers.get('Content-encoding', '')
       encoding = ContentDecoder()
 
       if ce:
@@ -49,20 +49,19 @@ class Parser:
 
         # A client may illegally specify a byte -> str encoding here (e.g. utf8)
         if isinstance(content, str):
-            return "Illegally specified content-encoding!"
-
-        return content
+          return "Illegally specified content-encoding!"
       else:
         # no content-header was provided
         # force decode to fail and try all possible decompressions
         # note: could be that there is no compression done server side, uncompressed will be returned
-        content = encoding.decode(flow, "")
-        return content
+        content = encoding.decode(flow, ce)
+      
+      return content
 
   def charset_normalizer(self, byte_string):
     result = CnM.from_bytes(
       byte_string,
-      threshold = 0.2, #threshold has been explicitly set for further maintenance
+      threshold = 1, #Some websites simply are too different, they need a margin or else the prgram will simply fail
       preemptive_behaviour=True,  # Determine if we should look into my_byte_str (ASCII-Mode) for pre-defined encoding
       explain=False  # Print on screen what is happening when searching for a match (FOR DEBUGGING PURPOSES)
     ).best().first() #keep only the matches with the lowest ratio of chaos, return the first list from the element
@@ -73,8 +72,6 @@ class Parser:
       return utf8String
     else:
       return "Could not guess content-type! Either set the threshold higher, or the file is simply too malformed."
-
-    return None
 
 addons = [
     Parser()

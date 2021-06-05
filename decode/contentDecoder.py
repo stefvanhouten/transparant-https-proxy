@@ -9,7 +9,29 @@ from typing import Union, Optional, AnyStr, overload
 
 class ContentDecoder:
     def __init__(self):
-        self.custom_decode()
+        self.single_compression = {
+            "gzip": self.decode_gzip,
+            "deflate": self.decode_deflate,
+            "deflateRaw": self.decode_deflate,
+            "br": self.decode_brotli,
+            "zstd": self.decode_zstd,
+            "identity": self.identity,
+            "none": self.identity
+        }
+
+        self.multiple_compression = {
+            "gzip, deflate, br, zstd": [self.decode_gzip, self.decode_deflate, self.decode_brotli, self.decode_zstd],
+            "gzip, deflate, br": [self.decode_gzip, self.decode_deflate, self.decode_brotli],
+            "gzip, deflate, zstd": [self.decode_gzip, self.decode_deflate, self.decode_zstd],
+            "gzip, br, zstd": [self.decode_gzip, self.decode_brotli, self.decode_zstd],
+            "deflate, br, zstd": [self.decode_deflate, self.decode_brotli, self.decode_zstd],
+            "deflate, zstd": [self.decode_deflate, self.decode_zstd],
+            "deflate, br": [self.decode_deflate, self.decode_brotli],
+            "br, zstd": [self.decode_brotli, self.decode_zstd],
+            "gzip, br": [self.decode_gzip, self.decode_brotli],
+            "gzip, deflate": [self.decode_gzip, self.decode_deflate],
+            "gzip, zstd": [self.decode_gzip, self.decode_zstd]
+        }
 
     def decode(
         self, flow, encoding: str
@@ -24,56 +46,74 @@ class ContentDecoder:
         if flow.response.raw_content is None:
             return None
 
+        if not encoding:
+            decoded = self.guess_decompression_method(flow)
+        #check whether compression is a single compression
+        elif encoding in ("gzip", "deflate", "br", "zstd"):
+            decoded = self.single_decode(flow, encoding)
+        else:
+            decoded = self.multi_decode(flow, encoding)
+        
+        return decoded
+
+
+    def single_decode(
+        self, flow, encoding: str
+    ) -> Union[None, str, bytes]:
         try:
-            #check whether compression is a single compression
-            if encoding in ("gzip", "deflate", "br", "zstd"):
-                decoded = self.single_compression[encoding](flow.response.raw_content)
-                return decoded
-            else:
-                #multiple compressions have been used -> list is returned
-                compressions = self.multiple_compression[encoding]
-
-                decompressedContent = ""
-
-                try:
-                    for decompressMethod in compressions:
-                        if not decompressedContent:
-                            decompressedContent = decompressMethod(flow.response.raw_content)
-                        else:
-                            decompressedContent = decompressMethod(decompressedContent)
-
-                    return decompressedContent
-                except:
-
-                    decompressedContent = ""
-
-                    # check for multiple compression combinations
-                    for decompressionMethod in self.multiple_compression:
-                        try:
-                            for decompressMethod in decompressionMethod:
-                                if not decompressedContent:
-                                    decompressedContent = decompressMethod(flow.response.raw_content)
-                                else:
-                                    decompressedContent = decompressMethod(decompressedContent)
-
-                            return decompressedContent
-                        except:
-                            # reset to prevent new cycle from appending to old cycle
-                            decompressedContent = ""
-                            pass
-
-                return None
+            decoded = self.single_compression[encoding](flow.response.raw_content)
         except:
-            # check for each single compression. Header cannot be trusted
-            for decompressionMethod in self.single_compression:
-                try:
-                    decoded = self.single_compression[decompressionMethod](flow.response.raw_content)
-                    return decoded
-                except:
-                    pass
-            
-            return None
+            decoded = self.guess_decompression_method(flow)
 
+        return decoded
+
+    def multi_decode(
+        self, flow, encoding: str
+    ) -> Union[None, str, bytes]:
+            #multiple compressions have been used -> list is returned
+            compressions = self.multiple_compression[encoding]
+
+            decoded = ''
+
+            try:
+                for decompressMethod in compressions:
+                    if not decoded:
+                        decoded = decompressMethod(flow.response.raw_content)
+                    else:
+                        decoded = decompressMethod(decoded)
+            except:
+                decoded = self.guess_decompression_method(flow)
+            
+            return decoded
+
+    def guess_decompression_method(self, flow):
+        decoded = ''
+
+        # check for multiple compression combinations. header cannot be trusted
+        for decompressionMethod in self.multiple_compression:
+            try:
+                for decompressMethod in decompressionMethod:
+                    if not decoded:
+                        decoded = decompressMethod(flow.response.raw_content)
+                    else:
+                        decoded = decompressMethod(decoded)
+
+                return decoded
+            except:
+                # reset to prevent new cycle from appending to old cycle
+                decoded = ''
+
+        # check for each single compression. Header cannot be trusted
+        for decompressionMethod in self.single_compression:
+            try:
+                decoded = self.single_compression[decompressionMethod](flow.response.raw_content)
+                return decoded
+            except:
+                pass
+
+        return "Not a single decompression method was valid"
+
+        
 
     def identity(self, content):
         """
@@ -120,28 +160,3 @@ class ContentDecoder:
             return zlib.decompress(content)
         except zlib.error:
             return zlib.decompress(content, -15)
-
-    def custom_decode(self):
-        self.single_compression = {
-            "gzip": self.decode_gzip,
-            "deflate": self.decode_deflate,
-            "deflateRaw": self.decode_deflate,
-            "br": self.decode_brotli,
-            "zstd": self.decode_zstd,
-            "identity": self.identity,
-            "none": self.identity
-        }
-
-        self.multiple_compression = {
-            "gzip, deflate, br, zstd": [self.decode_gzip, self.decode_deflate, self.decode_brotli, self.decode_zstd],
-            "gzip, deflate, br": [self.decode_gzip, self.decode_deflate, self.decode_brotli],
-            "gzip, deflate, zstd": [self.decode_gzip, self.decode_deflate, self.decode_zstd],
-            "gzip, br, zstd": [self.decode_gzip, self.decode_brotli, self.decode_zstd],
-            "deflate, br, zstd": [self.decode_deflate, self.decode_brotli, self.decode_zstd],
-            "deflate, zstd": [self.decode_deflate, self.decode_zstd],
-            "deflate, br": [self.decode_deflate, self.decode_brotli],
-            "br, zstd": [self.decode_brotli, self.decode_zstd],
-            "gzip, br": [self.decode_gzip, self.decode_brotli],
-            "gzip, deflate": [self.decode_gzip, self.decode_deflate],
-            "gzip, zstd": [self.decode_gzip, self.decode_zstd]
-        }
