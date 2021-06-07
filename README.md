@@ -32,7 +32,7 @@ For Windows:
 env/scripts/activate
 ```
 
-For Linux (I think):
+For Linux:
 
 ```bash
 source env/bin/activate
@@ -103,29 +103,50 @@ A file will be downloaded. Click on this file and it will execute.
 - Port: `8080` (default setting)
 - Save
 
+## Starting the project
+Start the project by executing the following command while you are in the project folder.
+```bash
+mitmproxy -s proxy.py
+```
+
 ## Generate Self signed certificate
-Go to http://mitm.it/. If you see the text _"If you can see this, traffic is not passing through mitmproxy."_, it means your proxy is not active and something went wrong during installation.
-If everything did go correct, you should see tiles which should look like this:
+The project will work as-is with http websites, but websites that use https will require some additional steps as you might otherwise encounter the following error message:
 
-![tiles](https://user-images.githubusercontent.com/38207747/117337332-89354400-ae9d-11eb-9341-81573eedb531.PNG)
+![image](https://user-images.githubusercontent.com/11412480/121014932-c6416e80-c79a-11eb-8862-ac95446e7f2d.png)
 
-Click on _get mitmproxy (...)_ next to the tile that shows your operating system.
-From there on the wizard will prompt you to select for which user (on your computer) this program should be installed and to configure whether you would like to create a password for your private key.
+By default, mitmproxy will automatically create a root certificate during first launch, so be sure to run the project first before proceeding with the following steps. 
 
-Upon completion of the above, close _mitmpdump_ or _mitmproxy ui_ (if it's running) and close the browser.
+Mitmproxy will put these certificates in the `.mitmproxy` folder of your user. Linux, macOS, and most browsers will need the `mitmproxy-ca-cert.pem` certificate, while Windows requires the `mitmproxy-ca-cert.p12` certificate.
 
-Type in the windows search box either _mitmpdump_ or _mitmproxy ui_. Both are proxy servers, _mitmproxy ui_ comes with an interface, whereas _mitmdump_ will give you the console display.
-Click on the one you prefer and wait until you see _Web server listening at http://127.0.0.1:8081/
-Proxy server listening at http://*:8080_ in the opened console.
+```bash
+user@Hostname ~ ls -l /home/user/.mitmproxy
+total 24
+-rw-r--r-- 1 user user 1318 May 11 14:18 mitmproxy-ca-cert.cer
+-rw-r--r-- 1 user user 1140 May 11 14:18 mitmproxy-ca-cert.p12
+-rw-r--r-- 1 user user 1318 May 11 14:18 mitmproxy-ca-cert.pem
+-rw------- 1 user user 2529 May 11 14:18 mitmproxy-ca.p12
+-rw------- 1 user user 3022 May 11 14:18 mitmproxy-ca.pem
+-rw-r--r-- 1 user user  770 May 11 14:18 mitmproxy-dhparam.pem
+```
 
-Start your favorite browser and type in: https://google.com.
-If the installation went correct, you should be able to see google via HTTPS.
+Find the installation instructions for various platforms below:
 
-To confirm mitm is signing the certificate, click on the key lock next to the Uniform Resource Locator (URL).
+- [Mozilla Firefox](https://wiki.mozilla.org/MozillaRootCertificate#Mozilla_Firefox)
+- [Google Chrome](https://stackoverflow.com/a/15076602/198996)
+- [Ubuntu/Debian](https://askubuntu.com/questions/73287/how-do-i-install-a-root-certificate/94861#94861)
+- [macOS](https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac)
+- Windows: simply double-click the `mitmproxy-ca-cert.p12` file.
+
+After installing the certificate, go to website that utilizes the https protocol, such as [stackoverflow.com](https://stackoverflow.com/). You should see the padlock in your browser, indicating that your connection is successfully running over https.
+
+![image](https://user-images.githubusercontent.com/11412480/121016912-0144a180-c79d-11eb-83dd-95c8eecb42c7.png)
+
+
+To confirm mitmproxy is signing the certificate, click on the keypad symbol in your URL bar.
 
 Click on _Certificate_ and you should see the following:
 
-![image](https://user-images.githubusercontent.com/38207747/117338929-6dcb3880-ae9f-11eb-8c77-367b76fa823c.png)
+![image](https://user-images.githubusercontent.com/11412480/121017091-2b965f00-c79d-11eb-8daa-fb9b76ca3647.png)
 
 ## Unittests
 
