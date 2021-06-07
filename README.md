@@ -141,7 +141,7 @@ Find the installation instructions for various platforms below:
 - [Google Chrome](https://stackoverflow.com/a/15076602/198996)
 - [Ubuntu/Debian](https://askubuntu.com/questions/73287/how-do-i-install-a-root-certificate/94861#94861)
 - [macOS](https://support.apple.com/guide/keychain-access/add-certificates-to-a-keychain-kyca2431/mac)
-- Windows: simply double-click the `mitmproxy-ca-cert.p12` file.
+- Windows: simply double-click the `mitmproxy-ca-cert.p12` file, and follow the instructions.
 
 After installing the certificate, go to a website that utilizes the https protocol, such as [stackoverflow.com](https://stackoverflow.com/). You should see the padlock in your browser, indicating that your connection is successfully running over https.
 
