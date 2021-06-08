@@ -22,7 +22,7 @@ python -m venv env
 
 or
 ```python
-python3 venv env
+python3 -m venv env
 ```
 
 This might take a little bit of time to complete. When the command is done with execution, you will now have a new folder called env in your project directory. Now we need to activate this environment in the project directory:
