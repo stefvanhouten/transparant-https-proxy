@@ -11,7 +11,7 @@ def exclude_list():
     # res = requests.get('http://127.0.0.1:5000/proxy')
     # data = json.loads(res.content)
     # data.get('exclude', ['html', 'script', 'style'])
-    return ['html', 'script', 'style']
+    return ['script', 'style']
 
 class Parser:
   def request(self, flow):

@@ -48,12 +48,14 @@ class ContentDecoder:
 
         if not encoding:
             decoded = self.guess_decompression_method(flow)
-        #check whether compression is a single compression
-        elif encoding in ("gzip", "deflate", "br", "zstd"):
-            decoded = self.single_decode(flow, encoding)
-        else:
-            decoded = self.multi_decode(flow, encoding)
+            return decoded
         
+        #check whether compression is a single compression
+        if encoding in ("gzip", "deflate", "br", "zstd"):
+            decoded = self.single_decode(flow, encoding)
+            return decoded
+        
+        decoded = self.multi_decode(flow, encoding)
         return decoded
 
 
@@ -61,8 +63,8 @@ class ContentDecoder:
         self, flow, encoding: str
     ) -> Union[None, str, bytes]:
         try:
-            decoded = self.single_compression[encoding](flow.response.raw_content)
-        except:
+            decoded = self.single_compression["gzip"](flow.response.raw_content)
+        except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
             decoded = self.guess_decompression_method(flow)
 
         return decoded
@@ -81,7 +83,7 @@ class ContentDecoder:
                         decoded = decompressMethod(flow.response.raw_content)
                     else:
                         decoded = decompressMethod(decoded)
-            except:
+            except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
                 decoded = self.guess_decompression_method(flow)
             
             return decoded
@@ -92,14 +94,14 @@ class ContentDecoder:
         # check for multiple compression combinations. header cannot be trusted
         for decompressionMethod in self.multiple_compression:
             try:
-                for decompressMethod in decompressionMethod:
+                for decompressMethod in self.multiple_compression[decompressionMethod]:
                     if not decoded:
                         decoded = decompressMethod(flow.response.raw_content)
                     else:
                         decoded = decompressMethod(decoded)
 
                 return decoded
-            except:
+            except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
                 # reset to prevent new cycle from appending to old cycle
                 decoded = ''
 
@@ -108,10 +110,8 @@ class ContentDecoder:
             try:
                 decoded = self.single_compression[decompressionMethod](flow.response.raw_content)
                 return decoded
-            except:
+            except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
                 pass
-
-        return "Not a single decompression method was valid"
 
         
 
@@ -126,6 +126,7 @@ class ContentDecoder:
     def decode_gzip(self, content: bytes) -> bytes:
         if not content:
             return b""
+        
         gfile = gzip.GzipFile(fileobj=BytesIO(content))
         return gfile.read()
 
