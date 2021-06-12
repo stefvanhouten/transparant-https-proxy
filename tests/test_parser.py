@@ -9,7 +9,8 @@ def htmlparser():
         "script",
         "noscript",
         "style",
-        "custom"
+        "custom",
+        "select"
     ])
 
 def test_incomplete_html(htmlparser):
@@ -209,6 +210,22 @@ def test_exclude(htmlparser, subtests):
                 """,
             "expected": "<data><html><head><title>Document</title></head><body><p><b>hello</b></p></body></html></data>",
         },
+        {
+            "test": """
+                <form>
+                    <select id='languageselect'>
+                        <option>မြန်မာ</option>
+                        <option>ខ្មែរ</option>
+                        <option>한국어</option>
+                        <option>日本語</option>
+                        <option>简体中文</option>
+                        <option>繁體中文</option>
+                        <option>繁體中文 (香港)</option>
+                    </select>
+                </form>
+            """,
+            "expected": "<data><html><head></head><body><form></form></body></html></data>"
+        }
     )
     for test in tests:
         with subtests.test(test=test):
@@ -251,26 +268,9 @@ def test_tag_attributes(htmlparser, subtests):
                 """,
             "expected": "<data><html><head><title>Document</title></head><body><p class='aardappel'><b>hello</b></p></body></html></data>",
         },
-        {
-            "test": """
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                <script>test</script>
-                <title>Document</title>
-                <script>test</script>
-                </head>
-                <body>
-                    <p class="aardappel"><script>test</script><b id="geneste-aardappel">hello</b></p>
-                    <script id="banaan">test</script>
-                    <custom>test</custom>
-                </body>
-                </html>
-                """,
-            "expected": "<data><html><head><title>Document</title></head><body><p class='aardappel'><b id='geneste-aardappel'>hello</b></p></body></html></data>",
-        },
     )
 
     for test in tests:
         with subtests.test(test=test):
             assert test["expected"] == htmlparser.parse(test["test"], pretty_xml=False)
+
