@@ -122,11 +122,9 @@ class HTMLParser:
         Returns:
           string: Formatted XML starting tag when a tag could be created, otherwise None.
         """
-        # When we arrive at a new starting tag we want to reset tag skipping.
-        # self.skipping_tag = False
         tag_name = tag["name"]
 
-        if tag_name in self.exclude:
+        if tag_name in self.exclude or self.skipping_tag:
             self.skipping_tag = True
             return
 
@@ -164,9 +162,14 @@ class HTMLParser:
           string: Formatted XML ending tag when a tag could be created, otherwise None.
         """
         tag_name = tag["name"]
+
         if tag_name in self.exclude:
             self.skipping_tag = False
             return
+
+        if self.skipping_tag:
+          return
+
         return f"</{tag_name}>"
 
     def _build_img_tag(self, tag: dict) -> str:
