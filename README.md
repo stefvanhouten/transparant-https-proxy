@@ -72,14 +72,38 @@ pip3 freeze > requirements.txt
 
 
 ## Setting up Flask
-Setting up and running the flask API server.
+# Setting up the database
+Before the API can be used we need to setup the database. Setting up the database is simple, all you need to do is to get started is creating a empty MySQL database.
+Create a user that can access the MySQL database and remember the username/password/databasename for later.
+
+# Creating the database
+When running the app for the first time and you want to set up the database use the following commands to setup the database:
 
 Linux:
 
 ```bash
 export FLASK_APP=api
 export FLASK_ENV=development
-export SQLALCHEMY_DATABASE_URI=mysql+pymsql://{username}:{password}@{host}/{database}
+export SQLALCHEMY_DATABASE_URI=mysql+pymsql://{username}:{password}@{host}/{databasename}
+flask init-db
+```
+
+Windows:
+
+```bash
+$env:FLASK_APP = "api"
+$env:FLASK_ENV = "development"
+flask init-db
+```
+# Running the API
+Setting up and running the flask API server. Note that if it is your first time running the app follow the steps in `Creating the database` first.
+
+Linux:
+
+```bash
+export FLASK_APP=api
+export FLASK_ENV=development
+export SQLALCHEMY_DATABASE_URI=mysql+pymsql://{username}:{password}@{host}/{databasename}
 flask run
 ```
 
