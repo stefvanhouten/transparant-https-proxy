@@ -23,7 +23,7 @@ def error_wrapper(func):
                     "errors": err.messages,
                     "status": HTTPStatus.BAD_REQUEST,
                 }
-            )
+            ), HTTPStatus.BAD_REQUEST
         except IntegrityError as err:
             db.session.rollback()
             return jsonify(
@@ -32,7 +32,7 @@ def error_wrapper(func):
                     "errors": ["Database error"],
                     "status": HTTPStatus.INTERNAL_SERVER_ERROR,
                 }
-            )
+            ), HTTPStatus.INTERNAL_SERVER_ERROR
         except Exception as err:
             print(err)
             return jsonify(
@@ -41,7 +41,7 @@ def error_wrapper(func):
                     "errors": ["Something went wrong"],
                     "status": HTTPStatus.INTERNAL_SERVER_ERROR,
                 }
-            )
+            ), HTTPStatus.INTERNAL_SERVER_ERROR
 
     return wrapper
 
@@ -64,14 +64,14 @@ def get_config(ip, name):
                 ],
                 "status": HTTPStatus.NOT_FOUND,
             }
-        )
+        ), HTTPStatus.NOT_FOUND
 
-    return {
+    return jsonify({
         "error": False,
         "errors": [],
         "config": CreateConfigSchema().dump(config),
         "status": HTTPStatus.OK,
-    }
+    }), HTTPStatus.OK
 
 
 @bp.route("/create_config", methods=["POST"])
@@ -95,14 +95,14 @@ def create_config():
                 ],
                 "status": HTTPStatus.CONFLICT,
             }
-        )
+        ), HTTPStatus.CONFLICT
 
     db.session.add(sanitzed_data)
     db.session.commit()
 
-    return {
+    return jsonify({
         "error": False,
         "errors": [],
         "config": CreateConfigSchema().dump(sanitzed_data),
         "status": HTTPStatus.OK,
-    }
+    }), HTTPStatus.OK
