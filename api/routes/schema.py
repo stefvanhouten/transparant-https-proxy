@@ -1,4 +1,4 @@
-from marshmallow import fields, pre_dump, post_load
+from marshmallow import fields, post_load, pre_dump
 from marshmallow_sqlalchemy import SQLAlchemySchema
 
 from api.models import Configurations
@@ -22,11 +22,13 @@ class CreateConfigSchema(SQLAlchemySchema):
     @pre_dump
     def pre_dump(self, data, **kwargs):
         if data is not None and data.exclude_elements:
-            data.exclude_elements = [element for element in data.exclude_elements.split(",")]
+            data.exclude_elements = [
+                element for element in data.exclude_elements.split(",")
+            ]
             return data
 
     @post_load
     def post_load(self, data, **kwargs):
         if data is not None and data.exclude_elements:
-            data.exclude_elements = ','.join(data.exclude_elements)
+            data.exclude_elements = ",".join(data.exclude_elements)
             return data

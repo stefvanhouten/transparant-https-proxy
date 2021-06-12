@@ -3,12 +3,13 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
 from marshmallow.exceptions import ValidationError
+from sqlalchemy.exc import IntegrityError
 
 from api.models import Configurations, db
 from api.routes.schema import CreateConfigSchema, GetConfigSchema
-from sqlalchemy.exc import IntegrityError
 
 bp = Blueprint("proxy", __name__, url_prefix="/proxy")
+
 
 def error_wrapper(func):
     @wraps(func)
@@ -76,18 +77,25 @@ def get_config(ip, name):
 @bp.route("/create_config", methods=["POST"])
 @error_wrapper
 def create_config():
-    sanitzed_data = CreateConfigSchema(session=db.session).load(request.get_json(), transient=True)
+    sanitzed_data = CreateConfigSchema(session=db.session).load(
+        request.get_json(), transient=True
+    )
 
-    if Configurations.query.filter_by(
-        ip=sanitzed_data.ip, name=sanitzed_data.name
-    ).first() is not None:
-        return jsonify({
+    if (
+        Configurations.query.filter_by(
+            ip=sanitzed_data.ip, name=sanitzed_data.name
+        ).first()
+        is not None
+    ):
+        return jsonify(
+            {
                 "error": True,
                 "errors": [
                     f"Config with the combination of '{sanitzed_data.ip}' and '{sanitzed_data.name}' already exists"
                 ],
                 "status": HTTPStatus.CONFLICT,
-            })
+            }
+        )
 
     db.session.add(sanitzed_data)
     db.session.commit()
@@ -98,4 +106,3 @@ def create_config():
         "config": CreateConfigSchema().dump(sanitzed_data),
         "status": HTTPStatus.OK,
     }
-

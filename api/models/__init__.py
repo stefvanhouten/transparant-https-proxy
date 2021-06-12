@@ -1,5 +1,6 @@
 from api import db
 
+
 class Configurations(db.Model):
     __tablename__ = "configurations"
     __table_args__ = (db.UniqueConstraint("ip", "name", name="uix_1"),)
