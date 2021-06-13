@@ -113,19 +113,6 @@ export FLASK_ENV=development
 export SQLALCHEMY_DATABASE_URI=mysql+pymsql://{username}:{password}@{host}/{databasename}
 flask run
 ```
-
-# Unittests
-```bash
-make test
-```
-
-To run the unittests:
-
-```python
-python -m pytest tests
-```
-Or:
-
 # Creating a custom config for the proxy
 ```bash
 127.0.0.1:5000/proxy/create_config
@@ -145,3 +132,14 @@ config_ip: 127.0.0.1
 config_name: mytestconfig
 ```
 
+# Unittests
+```bash
+make test
+```
+
+To run the unittests:
+
+```python
+python -m pytest tests
+```
+Or:
