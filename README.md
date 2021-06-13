@@ -126,7 +126,7 @@ python -m pytest tests
 ```
 Or:
 
-# Creating a config
+# Creating a custom config for the proxy
 ```bash
 127.0.0.1:5000/proxy/create_config
 
@@ -137,7 +137,7 @@ Or:
     "exclude_elements": ["noscript", "script", "style", "h1", "p"]
 }
 ```
-# Running the proxy with a custom config
+# Using the proxy with a custom config
 To run the proxy with a custom config that was created with the `create_config` api endpoint, all you need to do is pass the following headers with every request to the proxy:
 
 ```bash
