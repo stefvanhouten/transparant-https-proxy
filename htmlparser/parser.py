@@ -168,7 +168,7 @@ class HTMLParser:
             return
 
         if self.skipping_tag:
-          return
+            return
 
         return f"</{tag_name}>"
 

@@ -17,31 +17,40 @@ def error_wrapper(func):
         try:
             return func(*args, **kwargs)
         except ValidationError as err:
-            return jsonify(
-                {
-                    "error": True,
-                    "errors": err.messages,
-                    "status": HTTPStatus.BAD_REQUEST,
-                }
-            ), HTTPStatus.BAD_REQUEST
+            return (
+                jsonify(
+                    {
+                        "error": True,
+                        "errors": err.messages,
+                        "status": HTTPStatus.BAD_REQUEST,
+                    }
+                ),
+                HTTPStatus.BAD_REQUEST,
+            )
         except IntegrityError as err:
             db.session.rollback()
-            return jsonify(
-                {
-                    "error": True,
-                    "errors": ["Database error"],
-                    "status": HTTPStatus.INTERNAL_SERVER_ERROR,
-                }
-            ), HTTPStatus.INTERNAL_SERVER_ERROR
+            return (
+                jsonify(
+                    {
+                        "error": True,
+                        "errors": ["Database error"],
+                        "status": HTTPStatus.INTERNAL_SERVER_ERROR,
+                    }
+                ),
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
         except Exception as err:
             print(err)
-            return jsonify(
-                {
-                    "error": True,
-                    "errors": ["Something went wrong"],
-                    "status": HTTPStatus.INTERNAL_SERVER_ERROR,
-                }
-            ), HTTPStatus.INTERNAL_SERVER_ERROR
+            return (
+                jsonify(
+                    {
+                        "error": True,
+                        "errors": ["Something went wrong"],
+                        "status": HTTPStatus.INTERNAL_SERVER_ERROR,
+                    }
+                ),
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
 
     return wrapper
 
@@ -56,22 +65,30 @@ def get_config(ip, name):
     ).first()
 
     if not config:
-        return jsonify(
-            {
-                "error": True,
-                "errors": [
-                    f"Config with combination ip: '{ip}' and name: '{name}' not found"
-                ],
-                "status": HTTPStatus.NOT_FOUND,
-            }
-        ), HTTPStatus.NOT_FOUND
+        return (
+            jsonify(
+                {
+                    "error": True,
+                    "errors": [
+                        f"Config with combination ip: '{ip}' and name: '{name}' not found"
+                    ],
+                    "status": HTTPStatus.NOT_FOUND,
+                }
+            ),
+            HTTPStatus.NOT_FOUND,
+        )
 
-    return jsonify({
-        "error": False,
-        "errors": [],
-        "config": CreateConfigSchema().dump(config),
-        "status": HTTPStatus.OK,
-    }), HTTPStatus.OK
+    return (
+        jsonify(
+            {
+                "error": False,
+                "errors": [],
+                "config": CreateConfigSchema().dump(config),
+                "status": HTTPStatus.OK,
+            }
+        ),
+        HTTPStatus.OK,
+    )
 
 
 @bp.route("/create_config", methods=["POST"])
@@ -87,22 +104,30 @@ def create_config():
         ).first()
         is not None
     ):
-        return jsonify(
-            {
-                "error": True,
-                "errors": [
-                    f"Config with the combination of '{sanitzed_data.ip}' and '{sanitzed_data.name}' already exists"
-                ],
-                "status": HTTPStatus.CONFLICT,
-            }
-        ), HTTPStatus.CONFLICT
+        return (
+            jsonify(
+                {
+                    "error": True,
+                    "errors": [
+                        f"Config with the combination of '{sanitzed_data.ip}' and '{sanitzed_data.name}' already exists"
+                    ],
+                    "status": HTTPStatus.CONFLICT,
+                }
+            ),
+            HTTPStatus.CONFLICT,
+        )
 
     db.session.add(sanitzed_data)
     db.session.commit()
 
-    return jsonify({
-        "error": False,
-        "errors": [],
-        "config": CreateConfigSchema().dump(sanitzed_data),
-        "status": HTTPStatus.OK,
-    }), HTTPStatus.OK
+    return (
+        jsonify(
+            {
+                "error": False,
+                "errors": [],
+                "config": CreateConfigSchema().dump(sanitzed_data),
+                "status": HTTPStatus.OK,
+            }
+        ),
+        HTTPStatus.OK,
+    )

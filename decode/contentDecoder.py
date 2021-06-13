@@ -5,7 +5,7 @@ import zlib
 import brotli
 import zstandard as zstd
 
-from typing import Union, Optional, AnyStr, overload
+from typing import Union
 
 class ContentDecoder:
     def __init__(self):
@@ -47,27 +47,20 @@ class ContentDecoder:
             return None
 
         if not encoding:
-            decoded = self.guess_decompression_method(flow)
-            return decoded
-        
+            return self.guess_decompression(flow)
+
         #check whether compression is a single compression
         if encoding in ("gzip", "deflate", "br", "zstd"):
-            decoded = self.single_decode(flow, encoding)
-            return decoded
-        
-        decoded = self.multi_decode(flow, encoding)
-        return decoded
+            return self.single_decode(flow)
+
+        return = self.multi_decode(flow, encoding)
 
 
-    def single_decode(
-        self, flow, encoding: str
-    ) -> Union[None, str, bytes]:
+    def single_decode(self, flow) -> Union[None, str, bytes]:
         try:
-            decoded = self.single_compression["gzip"](flow.response.raw_content)
+            return self.single_compression["gzip"](flow.response.raw_content)
         except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
-            decoded = self.guess_decompression_method(flow)
-
-        return decoded
+            return self.guess_decompression(flow)
 
     def multi_decode(
         self, flow, encoding: str
@@ -84,11 +77,11 @@ class ContentDecoder:
                     else:
                         decoded = decompressMethod(decoded)
             except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
-                decoded = self.guess_decompression_method(flow)
-            
+                decoded = self.guess_decompression(flow)
+
             return decoded
 
-    def guess_decompression_method(self, flow):
+    def guess_decompression(self, flow):
         decoded = ''
 
         # check for multiple compression combinations. header cannot be trusted
@@ -113,7 +106,7 @@ class ContentDecoder:
             except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
                 pass
 
-        
+
 
     def identity(self, content):
         """
@@ -126,7 +119,7 @@ class ContentDecoder:
     def decode_gzip(self, content: bytes) -> bytes:
         if not content:
             return b""
-        
+
         gfile = gzip.GzipFile(fileobj=BytesIO(content))
         return gfile.read()
 
