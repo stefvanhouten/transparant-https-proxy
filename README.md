@@ -62,7 +62,7 @@ To confirm mitmproxy is signing the certificate, click on the keypad symbol in y
 
 # Setting up the API
 ## Setting up the database
-Before the API can be used we need to setup the database. Setting up the database is simple, all you need to do is to get started is creating a empty MySQL database.
+Before the API can be used we need to setup the database. Setting up the database is simple, all you need to do is to get started is creating an empty MySQL database.
 
 Run:
 
