@@ -1,19 +1,16 @@
 import pytest
 import requests
+
 from htmlparser.parser import HTMLParser
 
 
 @pytest.fixture(scope="module")
 def htmlparser():
-    yield HTMLParser([
-        "script",
-        "noscript",
-        "style",
-        "custom"
-    ])
+    yield HTMLParser(["script", "noscript", "style", "custom", "select"])
+
 
 def test_incomplete_html(htmlparser):
-    output = htmlparser.parse("<p>", pretty_xml=False)
+    output = htmlparser.parse("<p>")
     EXPECTED = "<data><html><head></head><body><p></p></body></html></data>"
     assert output == EXPECTED
 
@@ -21,18 +18,24 @@ def test_incomplete_html(htmlparser):
 def match_output_vs_expected(tests, subtests, htmlparser):
     for testcase in tests:
         with subtests.test(test=testcase["test"]):
-            output = htmlparser.parse(testcase["test"], pretty_xml=False)
+            output = htmlparser.parse(testcase["test"])
             assert output == testcase["expected"]
 
 
 def test_broken_html(htmlparser, subtests):
     tests = (
-        {"test": "</p>", "expected": "<data><html><head></head><body></body></html></data>"},
+        {
+            "test": "</p>",
+            "expected": "<data><html><head></head><body></body></html></data>",
+        },
         {
             "test": "</div><p>",
             "expected": "<data><html><head></head><body><p></p></body></html></data>",
         },
-        {"test": "</a></p></b>", "expected": "<data><html><head></head><body></body></html></data>"},
+        {
+            "test": "</a></p></b>",
+            "expected": "<data><html><head></head><body></body></html></data>",
+        },
         {
             "test": "</p></p></p></p></p>",
             "expected": "<data><html><head></head><body></body></html></data>",
@@ -51,15 +54,30 @@ def test_broken_html(htmlparser, subtests):
 
 def test_html_entities(htmlparser, subtests):
     tests = (
-        {"test": "&lt;", "expected": "<data><html><head></head><body>&lt;</body></html></data>"},
-        {"test": "&gt;", "expected": "<data><html><head></head><body>&gt;</body></html></data>"},
-        {"test": "&gt;&lt;&gt;", "expected": "<data><html><head></head><body>&gt;&lt;&gt;</body></html></data>"},
-        {"test": "&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;", "expected": "<data><html><head></head><body>&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;</body></html></data>"},
+        {
+            "test": "&lt;",
+            "expected": "<data><html><head></head><body>&lt;</body></html></data>",
+        },
+        {
+            "test": "&gt;",
+            "expected": "<data><html><head></head><body>&gt;</body></html></data>",
+        },
+        {
+            "test": "&gt;&lt;&gt;",
+            "expected": "<data><html><head></head><body>&gt;&lt;&gt;</body></html></data>",
+        },
+        {
+            "test": "&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;",
+            "expected": "<data><html><head></head><body>&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;</body></html></data>",
+        },
         {
             "test": "&lt;p&gt;",
             "expected": "<data><html><head></head><body>&lt;p&gt;</body></html></data>",
         },
-        {"test": "&amp;", "expected": "<data><html><head></head><body>&amp;</body></html></data>"},
+        {
+            "test": "&amp;",
+            "expected": "<data><html><head></head><body>&amp;</body></html></data>",
+        },
         {
             "test": "&quot;",
             "expected": '<data><html><head></head><body>"</body></html></data>',
@@ -79,17 +97,17 @@ def test_html_entities(htmlparser, subtests):
 def test_no_unexpected_errors(htmlparser, subtests):
     urls = [
         "https://www.google.com",
-        "https://github.com/"
-        "https://www.youtube.com/",
+        "https://github.com/" "https://www.youtube.com/",
         "https://www.reddit.com/",
         "https://www.facebook.com",
         "https://www.baidu.com/",
-        "https://www.banggood.com/?akmClientCountry=NL&"
-        ]
+        "https://www.banggood.com/?akmClientCountry=NL&",
+    ]
     for url in urls:
         with subtests.test(url=url):
             response = requests.get(url).text
             htmlparser.parse(response)
+
 
 def test_exclude(htmlparser, subtests):
     tests = (
@@ -106,7 +124,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-                "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
         },
         {
             "test": """
@@ -121,7 +139,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-                "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
         },
         {
             "test": """
@@ -209,10 +227,26 @@ def test_exclude(htmlparser, subtests):
                 """,
             "expected": "<data><html><head><title>Document</title></head><body><p><b>hello</b></p></body></html></data>",
         },
+        {
+            "test": """
+                <form>
+                    <select id='languageselect'>
+                        <option>မြန်မာ</option>
+                        <option>ខ្មែរ</option>
+                        <option>한국어</option>
+                        <option>日本語</option>
+                        <option>简体中文</option>
+                        <option>繁體中文</option>
+                        <option>繁體中文 (香港)</option>
+                    </select>
+                </form>
+            """,
+            "expected": "<data><html><head></head><body><form></form></body></html></data>",
+        },
     )
     for test in tests:
         with subtests.test(test=test):
-            assert test["expected"] == htmlparser.parse(test["test"], pretty_xml=False)
+            assert test["expected"] == htmlparser.parse(test["test"])
 
 
 def test_tag_attributes(htmlparser, subtests):
@@ -251,26 +285,8 @@ def test_tag_attributes(htmlparser, subtests):
                 """,
             "expected": "<data><html><head><title>Document</title></head><body><p class='aardappel'><b>hello</b></p></body></html></data>",
         },
-        {
-            "test": """
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                <script>test</script>
-                <title>Document</title>
-                <script>test</script>
-                </head>
-                <body>
-                    <p class="aardappel"><script>test</script><b id="geneste-aardappel">hello</b></p>
-                    <script id="banaan">test</script>
-                    <custom>test</custom>
-                </body>
-                </html>
-                """,
-            "expected": "<data><html><head><title>Document</title></head><body><p class='aardappel'><b id='geneste-aardappel'>hello</b></p></body></html></data>",
-        },
     )
 
     for test in tests:
         with subtests.test(test=test):
-            assert test["expected"] == htmlparser.parse(test["test"], pretty_xml=False)
+            assert test["expected"] == htmlparser.parse(test["test"])

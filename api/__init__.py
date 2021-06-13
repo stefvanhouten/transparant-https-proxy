@@ -1,24 +1,28 @@
-import os
-
 from flask import Flask
+from flask_marshmallow import Marshmallow
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config.from_pyfile("config.py", silent=True)
+
+ma = Marshmallow(app)
+db = SQLAlchemy(app)
 
 
-def create_app(test_config=None):
-    app = Flask(__name__)
-    app.config.from_mapping(SECRET_KEY="dev")
+@app.cli.command("init-db")
+def init_db():
+    print("Initializing the database...")
+    db.create_all()
+    print("Database initialized successfully.")
 
-    if test_config is None:
-        app.config.from_pyfile("config.py", silent=True)
-    else:
-        app.config.from_mapping(test_config)
 
-    # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+@app.cli.command("remove-db")
+def remove_db():
+    print("Removing database...")
+    db.drop_all()
+    print("Database removed.")
 
-    from .routes import proxy
 
-    app.register_blueprint(proxy.bp)
-    return app
+from .routes import proxy
+
+app.register_blueprint(proxy.bp)

@@ -5,7 +5,6 @@ import bleach
 import html5lib
 import lxml.etree as etree
 
-
 class HTMLParser:
     def __init__(self, exclude: List[str], keep_attributes: bool = True):
         """Constructs and prepares the HTMLParser class to be ready for use.
@@ -27,14 +26,12 @@ class HTMLParser:
         self._tree_walker = html5lib.getTreeWalker("lxml")
 
     def parse(
-        self, file: str, output_location: str = None, pretty_xml: bool = True
+        self, file: str
     ) -> str:
         """Parses the given HTML file to an XML file.
 
         Args:
           file (string): The path to the HTML file or the HTML as a string.
-          output_location (string, optional): The path to the file where the output should be saved. Defaults to None.
-          pretty_xml (bool): Determines whether the output is prettified or not.
         Returns:
           string: The formatted XML string.
         """
@@ -42,7 +39,6 @@ class HTMLParser:
         self._stream = self._tree_walker(self._dom_tree)
         self.xml = self._convert_html_to_xml()
         return self.xml
-        # return self._pretty_xml(output_location, pretty_xml)
 
     def _create_dom_tree(self, file: str) -> Tuple[str, Any]:
         """Determines whether the given string is a path or the HTML, then either reads the file or converts
@@ -122,11 +118,9 @@ class HTMLParser:
         Returns:
           string: Formatted XML starting tag when a tag could be created, otherwise None.
         """
-        # When we arrive at a new starting tag we want to reset tag skipping.
-        # self.skipping_tag = False
         tag_name = tag["name"]
 
-        if tag_name in self.exclude:
+        if tag_name in self.exclude or self.skipping_tag:
             self.skipping_tag = True
             return
 
@@ -164,9 +158,14 @@ class HTMLParser:
           string: Formatted XML ending tag when a tag could be created, otherwise None.
         """
         tag_name = tag["name"]
+
         if tag_name in self.exclude:
             self.skipping_tag = False
             return
+
+        if self.skipping_tag:
+            return
+
         return f"</{tag_name}>"
 
     def _build_img_tag(self, tag: dict) -> str:
@@ -183,20 +182,3 @@ class HTMLParser:
             _, tag_name = tag
             new_tag += f"<{tag_name}>{bleach.clean(value)}</{tag_name}>"
         return f"<img>{new_tag}</img>"
-
-    def _pretty_xml(self, output_location, pretty_xml):
-        root = etree.fromstring(self.xml)
-        self._formatted_xml_string = str(
-            etree.tostring(root, pretty_print=True).decode()
-        )
-
-        if output_location is not None:
-            with open(output_location, "w+") as f:
-                if pretty_xml:
-                    f.write(self._formatted_xml_string)
-                else:
-                    f.write(self.xml)
-
-        if pretty_xml:
-            return self._formatted_xml_string
-        return self.xml
