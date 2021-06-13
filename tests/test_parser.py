@@ -10,7 +10,7 @@ def htmlparser():
 
 
 def test_incomplete_html(htmlparser):
-    output = htmlparser.parse("<p>", pretty_xml=False)
+    output = htmlparser.parse("<p>")
     EXPECTED = "<data><html><head></head><body><p></p></body></html></data>"
     assert output == EXPECTED
 
@@ -18,7 +18,7 @@ def test_incomplete_html(htmlparser):
 def match_output_vs_expected(tests, subtests, htmlparser):
     for testcase in tests:
         with subtests.test(test=testcase["test"]):
-            output = htmlparser.parse(testcase["test"], pretty_xml=False)
+            output = htmlparser.parse(testcase["test"])
             assert output == testcase["expected"]
 
 
@@ -246,7 +246,7 @@ def test_exclude(htmlparser, subtests):
     )
     for test in tests:
         with subtests.test(test=test):
-            assert test["expected"] == htmlparser.parse(test["test"], pretty_xml=False)
+            assert test["expected"] == htmlparser.parse(test["test"])
 
 
 def test_tag_attributes(htmlparser, subtests):
@@ -289,4 +289,4 @@ def test_tag_attributes(htmlparser, subtests):
 
     for test in tests:
         with subtests.test(test=test):
-            assert test["expected"] == htmlparser.parse(test["test"], pretty_xml=False)
+            assert test["expected"] == htmlparser.parse(test["test"])

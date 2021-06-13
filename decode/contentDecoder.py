@@ -53,7 +53,7 @@ class ContentDecoder:
         if encoding in ("gzip", "deflate", "br", "zstd"):
             return self.single_decode(flow)
 
-        return = self.multi_decode(flow, encoding)
+        return self.multi_decode(flow, encoding)
 
 
     def single_decode(self, flow) -> Union[None, str, bytes]:
@@ -66,9 +66,8 @@ class ContentDecoder:
         self, flow, encoding: str
     ) -> Union[None, str, bytes]:
             #multiple compressions have been used -> list is returned
-            compressions = self.multiple_compression[encoding]
-
             decoded = ''
+            compressions = self.multiple_compression[encoding]
 
             try:
                 for decompressMethod in compressions:

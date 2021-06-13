@@ -1,7 +1,7 @@
 import requests
 import json
 
-from typing import Union, Optional, AnyStr, overload
+from typing import Union
 from charset_normalizer import CharsetNormalizerMatches as CnM
 from mitmproxy import ctx
 from decode.contentDecoder import ContentDecoder
