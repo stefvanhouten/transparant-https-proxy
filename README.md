@@ -131,10 +131,8 @@ To confirm mitmproxy is signing the certificate, click on the keypad symbol in y
 ```bash
 make test
 ```
-
-To run the unittests:
+Or:
 
 ```python
 python -m pytest tests
 ```
-Or:

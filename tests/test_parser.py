@@ -11,7 +11,7 @@ def htmlparser():
 
 def test_incomplete_html(htmlparser):
     output = htmlparser.parse("<p>")
-    EXPECTED = "<data><html><head></head><body><p></p></body></html></data>"
+    EXPECTED = "<html><head></head><body><p></p></body></html>"
     assert output == EXPECTED
 
 
@@ -26,27 +26,27 @@ def test_broken_html(htmlparser, subtests):
     tests = (
         {
             "test": "</p>",
-            "expected": "<data><html><head></head><body></body></html></data>",
+            "expected": "<html><head></head><body></body></html>",
         },
         {
             "test": "</div><p>",
-            "expected": "<data><html><head></head><body><p></p></body></html></data>",
+            "expected": "<html><head></head><body><p></p></body></html>",
         },
         {
             "test": "</a></p></b>",
-            "expected": "<data><html><head></head><body></body></html></data>",
+            "expected": "<html><head></head><body></body></html>",
         },
         {
             "test": "</p></p></p></p></p>",
-            "expected": "<data><html><head></head><body></body></html></data>",
+            "expected": "<html><head></head><body></body></html>",
         },
         {
             "test": "<p></b>",
-            "expected": "<data><html><head></head><body><p></p></body></html></data>",
+            "expected": "<html><head></head><body><p></p></body></html>",
         },
         {
             "test": "<div><h1>hello world</p></div>",
-            "expected": "<data><html><head></head><body><div><h1>hello world<p></p></h1></div></body></html></data>",
+            "expected": "<html><head></head><body><div><h1>hello world<p></p></h1></div></body></html>",
         },
     )
     match_output_vs_expected(tests, subtests, htmlparser)
@@ -56,39 +56,39 @@ def test_html_entities(htmlparser, subtests):
     tests = (
         {
             "test": "&lt;",
-            "expected": "<data><html><head></head><body>&lt;</body></html></data>",
+            "expected": "<html><head></head><body>&lt;</body></html>",
         },
         {
             "test": "&gt;",
-            "expected": "<data><html><head></head><body>&gt;</body></html></data>",
+            "expected": "<html><head></head><body>&gt;</body></html>",
         },
         {
             "test": "&gt;&lt;&gt;",
-            "expected": "<data><html><head></head><body>&gt;&lt;&gt;</body></html></data>",
+            "expected": "<html><head></head><body>&gt;&lt;&gt;</body></html>",
         },
         {
             "test": "&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;",
-            "expected": "<data><html><head></head><body>&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;</body></html></data>",
+            "expected": "<html><head></head><body>&gt;&lt;&gt;&gt;&lt;&gt;&gt;&lt;&gt;</body></html>",
         },
         {
             "test": "&lt;p&gt;",
-            "expected": "<data><html><head></head><body>&lt;p&gt;</body></html></data>",
+            "expected": "<html><head></head><body>&lt;p&gt;</body></html>",
         },
         {
             "test": "&amp;",
-            "expected": "<data><html><head></head><body>&amp;</body></html></data>",
+            "expected": "<html><head></head><body>&amp;</body></html>",
         },
         {
             "test": "&quot;",
-            "expected": '<data><html><head></head><body>"</body></html></data>',
+            "expected": '<html><head></head><body>"</body></html>',
         },
         {
             "test": "&apos;",
-            "expected": "<data><html><head></head><body>'</body></html></data>",
+            "expected": "<html><head></head><body>'</body></html>",
         },
         {
             "test": "&apos;&gt;&apos;&quot;",
-            "expected": "<data><html><head></head><body>'&gt;'\"</body></html></data>",
+            "expected": "<html><head></head><body>'&gt;'\"</body></html>",
         },
     )
     match_output_vs_expected(tests, subtests, htmlparser)
@@ -124,7 +124,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body></body></html>",
         },
         {
             "test": """
@@ -139,7 +139,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body></body></html>",
         },
         {
             "test": """
@@ -153,7 +153,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body></body></html>",
         },
         {
             "test": """
@@ -170,7 +170,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body></body></html>",
         },
         {
             "test": """
@@ -189,7 +189,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body></body></html>",
         },
         {
             "test": """
@@ -207,7 +207,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body><p>hello</p></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body><p>hello</p></body></html>",
         },
         {
             "test": """
@@ -225,7 +225,7 @@ def test_exclude(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body><p><b>hello</b></p></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body><p><b>hello</b></p></body></html>",
         },
         {
             "test": """
@@ -241,7 +241,7 @@ def test_exclude(htmlparser, subtests):
                     </select>
                 </form>
             """,
-            "expected": "<data><html><head></head><body><form></form></body></html></data>",
+            "expected": "<html><head></head><body><form></form></body></html>",
         },
     )
     for test in tests:
@@ -253,19 +253,19 @@ def test_tag_attributes(htmlparser, subtests):
     tests = (
         {
             "test": '<p class="classy_attribute"/>',
-            "expected": "<data><html><head></head><body><p class='classy_attribute'></p></body></html></data>",
+            "expected": "<html><head></head><body><p class='classy_attribute'></p></body></html>",
         },
         {
             "test": '<p id="classy_attribute"/>',
-            "expected": "<data><html><head></head><body><p id='classy_attribute'></p></body></html></data>",
+            "expected": "<html><head></head><body><p id='classy_attribute'></p></body></html>",
         },
         {
             "test": '<p onclick="some random shit"/>',
-            "expected": "<data><html><head></head><body><p></p></body></html></data>",
+            "expected": "<html><head></head><body><p></p></body></html>",
         },
         {
             "test": '<p mousedown="some random shit"/>',
-            "expected": "<data><html><head></head><body><p></p></body></html></data>",
+            "expected": "<html><head></head><body><p></p></body></html>",
         },
         {
             "test": """
@@ -283,7 +283,7 @@ def test_tag_attributes(htmlparser, subtests):
                 </body>
                 </html>
                 """,
-            "expected": "<data><html><head><title>Document</title></head><body><p class='aardappel'><b>hello</b></p></body></html></data>",
+            "expected": "<html><head><title>Document</title></head><body><p class='aardappel'><b>hello</b></p></body></html>",
         },
     )
 

@@ -89,7 +89,7 @@ class HTMLParser:
 
             if item["type"] in INTERESTED_CHARACTERS and not self.skipping_tag:
                 converted_html += bleach.clean(item["data"])
-        return f"<data>{converted_html}</data>"
+        return converted_html
 
     def _build_tag(self, tag: dict) -> Optional[str]:
         """Attempts to build a XML tag for given HTML tag.
