@@ -14,7 +14,7 @@ def exclude_list(config_ip, config_name):
       if res.status_code == HTTPStatus.OK:
         data = json.loads(res.content)
         return data['config']['exclude_elements']
-    return ['script', 'style']
+    return ['script', 'style', 'noscript']
 
 class Parser:
   def request(self, flow):
