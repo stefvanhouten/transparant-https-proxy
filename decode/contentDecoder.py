@@ -47,27 +47,22 @@ class ContentDecoder:
             return None
 
         if not encoding:
-            decoded = self.guess_decompression_method(flow)
-            return decoded
+            return self.guess_decompression_method(flow)
         
         #check whether compression is a single compression
         if encoding in ("gzip", "deflate", "br", "zstd"):
-            decoded = self.single_decode(flow, encoding)
-            return decoded
+            return self.single_decode(flow, encoding)
         
-        decoded = self.multi_decode(flow, encoding)
-        return decoded
+        return self.multi_decode(flow, encoding)
 
 
     def single_decode(
         self, flow, encoding: str
     ) -> Union[None, str, bytes]:
         try:
-            decoded = self.single_compression[encoding](flow.response.raw_content)
+            return self.single_compression[encoding](flow.response.raw_content)
         except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
-            decoded = self.guess_decompression_method(flow)
-
-        return decoded
+            return self.guess_decompression_method(flow)
 
     def multi_decode(
         self, flow, encoding: str
