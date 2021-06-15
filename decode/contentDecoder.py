@@ -63,7 +63,7 @@ class ContentDecoder:
         self, flow, encoding: str
     ) -> Union[None, str, bytes]:
         try:
-            decoded = self.single_compression["gzip"](flow.response.raw_content)
+            decoded = self.single_compression[encoding](flow.response.raw_content)
         except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
             decoded = self.guess_decompression_method(flow)
 
