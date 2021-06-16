@@ -2,9 +2,7 @@ import os
 from typing import Any, BinaryIO, List, Optional, Tuple
 
 import html
-import bleach
 import html5lib
-import lxml.etree as etree
 
 class HTMLParser:
     def __init__(self, exclude: List[str], keep_attributes: bool = True):
@@ -89,7 +87,6 @@ class HTMLParser:
 
             if item["type"] in INTERESTED_CHARACTERS and not self.skipping_tag:
                 converted_html += html.escape(item['data'])
-                # converted_html += item['data']
         return converted_html
 
     def _build_tag(self, tag: dict) -> Optional[str]:
@@ -144,9 +141,7 @@ class HTMLParser:
         for key, value in attributes.items():
             _, attribute = key
             value = html.escape(value)
-            extracted_attributes.append(f"{attribute}=\"{value}\" ")
-            # if attribute in ("class", "href", "id"):
-            #     extracted_attributes.append(f"{attribute}='{bleach.clean(value)}'")
+            extracted_attributes.append(f"{attribute}=\"{value}\"")
         if len(extracted_attributes) >= 1:
             return " ".join(extracted_attributes)
 
@@ -175,9 +170,4 @@ class HTMLParser:
           _, tag_name = item
           value = html.escape(value)
           new_tag += f"{tag_name}=\"{value}\" "
-      return f"<{tag['name']} {new_tag} />"
-
-
-if __name__ == "__main__":
-  x = HTMLParser([]).parse("""<script>var h=!!(d&e)</script>""")
-  print(x)
+      return f"<{tag['name']} {new_tag}/>"

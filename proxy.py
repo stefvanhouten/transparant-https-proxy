@@ -26,25 +26,25 @@ class Parser:
   def response(self, flow):
     if not 'html' in flow.response.headers.get('Content-Type', ""):
       return
+    flow.response.headers['Content-Type'] = 'application/xml; charset=utf-8'
 
-    # decompressedContent = self.get_content(flow)
-    # ctx.log.error(decompressedContent)
-    # if decompressedContent is not None:
-    #   # Content could be uncompressed bytes, even though server-side could've compressed!
-    #   utf8String = self.charset_normalizer(decompressedContent)
-    # else:
-    #   utf8String = "Content could not be decompressed!"
+    decompressedContent = self.get_content(flow)
+    utf8String = flow.response.text
 
-    # flow.response.headers['Content-Type'] = 'application/xml; charset=utf-8'
-    flow.response.text = self.parser.parse(flow.response.text)
-    # try:
-    #   flow.response.text = self.parser.parse(flow.response.text)
-    # except:
-    #   flow.response.text = self.parser.parse("Parser could not convert to XML!")
+    if decompressedContent is not None:
+      result = self.charset_normalizer(decompressedContent)
+      if result is not None:
+        utf8String = result
+
+    try:
+      flow.response.text = self.parser.parse(utf8String)
+    except:
+      flow.response.text = self.parser.parse("Parser could not convert to XML!")
 
     # Postman wont allow these headers at the same time
     if "Content-Length" in flow.response.headers and "transfer-encoding" in flow.response.headers:
       del flow.response.headers['Content-Length']
+
 
   def get_content(self, flow) -> Union[None, str, bytes]:
       if flow.response.raw_content is None:
@@ -70,17 +70,14 @@ class Parser:
   def charset_normalizer(self, byte_string):
     result = CnM.from_bytes(
       byte_string,
-      # threshold = 1, #Some websites simply are too different, they need a margin or else the prgram will simply fail
-      # preemptive_behaviour=True,  # Determine if we should look into my_byte_str (ASCII-Mode) for pre-defined encoding
-      # explain=False  # Print on screen what is happening when searching for a match (FOR DEBUGGING PURPOSES)
+      threshold = 1,
+      preemptive_behaviour=False,
     ).best().first() #keep only the matches with the lowest ratio of chaos, return the first list from the element
 
     if result is not None:
-      #encode to UTF-8
       utf8String = str(result)
       return utf8String
-    else:
-      return "Could not guess content-type! Either set the threshold higher, or the file is simply too malformed."
+
 
 addons = [
     Parser()
