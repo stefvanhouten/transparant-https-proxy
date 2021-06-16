@@ -14,7 +14,7 @@ def exclude_list(config_ip, config_name):
       if res.status_code == HTTPStatus.OK:
         data = json.loads(res.content)
         return data['config']['exclude_elements']
-    return ['script', 'style', 'noscript']
+    return ['svg', 'script']
 
 class Parser:
   def request(self, flow):
@@ -27,20 +27,20 @@ class Parser:
     if not 'html' in flow.response.headers.get('Content-Type', ""):
       return
 
-    decompressedContent = self.get_content(flow)
+    # decompressedContent = self.get_content(flow)
+    # ctx.log.error(decompressedContent)
+    # if decompressedContent is not None:
+    #   # Content could be uncompressed bytes, even though server-side could've compressed!
+    #   utf8String = self.charset_normalizer(decompressedContent)
+    # else:
+    #   utf8String = "Content could not be decompressed!"
 
-    if decompressedContent is not None:
-      # Content could be uncompressed bytes, even though server-side could've compressed!
-      utf8String = self.charset_normalizer(decompressedContent)
-    else:
-      utf8String = "Content could not be decompressed!"
-
-    flow.response.headers['Content-Type'] = 'application/xml; charset=utf-8'
-
-    try:
-      flow.response.text = self.parser.parse(utf8String)
-    except:
-      flow.response.text = self.parser.parse("Parser could not convert to XML!")
+    # flow.response.headers['Content-Type'] = 'application/xml; charset=utf-8'
+    flow.response.text = self.parser.parse(flow.response.text)
+    # try:
+    #   flow.response.text = self.parser.parse(flow.response.text)
+    # except:
+    #   flow.response.text = self.parser.parse("Parser could not convert to XML!")
 
     # Postman wont allow these headers at the same time
     if "Content-Length" in flow.response.headers and "transfer-encoding" in flow.response.headers:
@@ -70,9 +70,9 @@ class Parser:
   def charset_normalizer(self, byte_string):
     result = CnM.from_bytes(
       byte_string,
-      threshold = 1, #Some websites simply are too different, they need a margin or else the prgram will simply fail
-      preemptive_behaviour=True,  # Determine if we should look into my_byte_str (ASCII-Mode) for pre-defined encoding
-      explain=False  # Print on screen what is happening when searching for a match (FOR DEBUGGING PURPOSES)
+      # threshold = 1, #Some websites simply are too different, they need a margin or else the prgram will simply fail
+      # preemptive_behaviour=True,  # Determine if we should look into my_byte_str (ASCII-Mode) for pre-defined encoding
+      # explain=False  # Print on screen what is happening when searching for a match (FOR DEBUGGING PURPOSES)
     ).best().first() #keep only the matches with the lowest ratio of chaos, return the first list from the element
 
     if result is not None:
