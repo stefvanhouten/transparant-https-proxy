@@ -48,17 +48,18 @@ class ContentDecoder:
 
         if not encoding:
             return self.guess_decompression(flow)
-
+        
         #check whether compression is a single compression
         if encoding in ("gzip", "deflate", "br", "zstd"):
-            return self.single_decode(flow)
-
+            return self.single_decode(flow, encoding)
+        
         return self.multi_decode(flow, encoding)
 
 
-    def single_decode(self, flow) -> Union[None, str, bytes]:
+
+    def single_decode(self, flow, encoding) -> Union[None, str, bytes]:
         try:
-            return self.single_compression["gzip"](flow.response.raw_content)
+            return self.single_compression[encoding](flow.response.raw_content)
         except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
             return self.guess_decompression(flow)
 
@@ -91,7 +92,6 @@ class ContentDecoder:
                         decoded = decompressMethod(flow.response.raw_content)
                     else:
                         decoded = decompressMethod(decoded)
-
                 return decoded
             except (brotli.error, zstd.ZstdError, zlib.error, gzip.BadGzipFile):
                 # reset to prevent new cycle from appending to old cycle
