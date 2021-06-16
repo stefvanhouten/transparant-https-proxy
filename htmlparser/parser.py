@@ -1,9 +1,8 @@
 import os
 from typing import Any, BinaryIO, List, Optional, Tuple
 
-import bleach
+import html
 import html5lib
-import lxml.etree as etree
 
 class HTMLParser:
     def __init__(self, exclude: List[str], keep_attributes: bool = True):
@@ -78,7 +77,6 @@ class HTMLParser:
             "Characters",
             "SpecialCharacters",
         )
-
         converted_html = ""
         for item in self._stream:
             if "name" in item:
@@ -88,7 +86,7 @@ class HTMLParser:
                 continue
 
             if item["type"] in INTERESTED_CHARACTERS and not self.skipping_tag:
-                converted_html += bleach.clean(item["data"])
+                converted_html += html.escape(item['data'])
         return converted_html
 
     def _build_tag(self, tag: dict) -> Optional[str]:
@@ -107,8 +105,8 @@ class HTMLParser:
             return self._build_end_tag(tag)
 
         if type == "EmptyTag":
-            if tag["name"] == "img":
-                return self._build_img_tag(tag)
+            return self._build_leftovers(tag)
+
 
     def _build_start_tag(self, tag) -> Optional[str]:
         """Attempts to build the starting XML tag from the given HTML tag.
@@ -128,6 +126,7 @@ class HTMLParser:
             attributes = self._extract_attributes(tag["data"])
             if attributes:
                 return f"<{tag_name} {attributes}>"
+
         return f"<{tag_name}>"
 
     def _extract_attributes(self, attributes):
@@ -141,11 +140,8 @@ class HTMLParser:
         extracted_attributes = []
         for key, value in attributes.items():
             _, attribute = key
-            if attribute in ("class", "href", "id"):
-                # XXX: Quotes are an issue here, however they shouldn't be in HTML attributes. This doesn't mean they wont be there though :).
-                # if attribute == 'href':
-                #   print(value)
-                extracted_attributes.append(f"{attribute}='{bleach.clean(value)}'")
+            value = html.escape(value)
+            extracted_attributes.append(f"{attribute}=\"{value}\"")
         if len(extracted_attributes) >= 1:
             return " ".join(extracted_attributes)
 
@@ -168,17 +164,10 @@ class HTMLParser:
 
         return f"</{tag_name}>"
 
-    def _build_img_tag(self, tag: dict) -> str:
-        """Attempts to build an img XML tag from the given HTMl tag.
-
-        Args:
-          tag (dict): The HTML tag containing all the information from the tag.
-        Returns:
-          string: Formatted IMG tag containing attributes such as src and alt.
-        """
-
-        new_tag = ""
-        for tag, value in tag["data"].items():
-            _, tag_name = tag
-            new_tag += f"<{tag_name}>{bleach.clean(value)}</{tag_name}>"
-        return f"<img>{new_tag}</img>"
+    def _build_leftovers(self, tag: dict) -> str:
+      new_tag = ""
+      for item, value in tag["data"].items():
+          _, tag_name = item
+          value = html.escape(value)
+          new_tag += f"{tag_name}=\"{value}\" "
+      return f"<{tag['name']} {new_tag}/>"
